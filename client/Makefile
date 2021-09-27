@@ -28,8 +28,8 @@ LINK_QUEUE 	= -Wl,-rpath,$(UTILDIR)/libs
 LINK_QUEUE	+= -L $(UTILDIR)/libs
 LINK_QUEUE	+= -lqueue
  
-#LINK_ALL	= $(LINK_API)
-LINK_ALL	= $(LINK_QUEUE)
+LINK_ALL	= $(LINK_API)
+LINK_ALL	+= $(LINK_QUEUE)
 # Flags
 CFLAGS		:= -std=c99 
 INCLUDES	= -I$(INCDIR)
@@ -85,7 +85,7 @@ PARAMS	:= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
 		   -l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
 		   -f ./tmp/filestorage.sk -D trash_here/ -d read_here/
 memcheck:
-	$(MAKE) remake
+	@make remake
 	@valgrind --leak-check=full ./$(BIN) $(PARAMS)
 	@make clean
 

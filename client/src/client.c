@@ -89,7 +89,7 @@ execute_request(option_t opt)
     if (DEBUG) LOG_DEBUG("executing request " BOLD "%s\n" RESET, option_to_str(opt.code));
     switch (opt.code) {
         case OPTION_READ: {
-            char *pathname = malloc(MAX_PATH);
+            /* char *pathname = malloc(MAX_PATH);
             size_t unsued;
             while (!isEmpty(opt.files_list)) {
                 dequeue(opt.files_list, pathname);
@@ -99,12 +99,12 @@ execute_request(option_t opt)
                     LOG_INFO("successfully read file [%s] from server.\n", pathname);
                 }
             }
-            free(pathname);
+            free(pathname); */
             destroyQueue(opt.files_list);
             break;
         }
         case OPTION_WRITE: {
-            char *pathname = malloc(MAX_PATH);
+            /* char *pathname = malloc(MAX_PATH);
             size_t unsued;
             char *abs_dirname = NULL;
             if (strcmp(config->expelled_dir, DIRECTORY_NOT_SET) != 0) {
@@ -121,7 +121,7 @@ execute_request(option_t opt)
                     LOG_INFO("successfully written file [%s] to server.\n", pathname);
                 }
             }
-            free(pathname);
+            free(pathname); */
             destroyQueue(opt.files_list);
             break;
         }

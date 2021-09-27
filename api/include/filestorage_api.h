@@ -2,6 +2,7 @@
 #define FILESTORAGE_API_H
 
 #include <stddef.h> 
+#include <time.h>
 
 /**
  * \brief Tries to open a connection to the socket file specified in the path variable socketname, 
