@@ -1,8 +1,7 @@
 #ifndef FILESTORAGE_API_H
 #define FILESTORAGE_API_H
 
-#include <stddef.h>
-#include <time.h>
+#include <stddef.h> 
 
 /**
  * \brief Tries to open a connection to the socket file specified in the path variable socketname, 
@@ -15,10 +14,7 @@
  * \return 0 if the connection is successfully opened, -1 otherwise. ERRNO is correctly set
  */
 int 
-openConnection(const char* sockname, int msec, const struct timespec abstime)
-{
-    return 0;
-}
+openConnection(const char* sockname, int msec, const struct timespec abstime);
 
 /**
  * \brief Tries to close a connection to the socket file specified in the path variable socketname
@@ -28,10 +24,7 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
  * \return 0 if the connection is successfully closed, -1 otherwise. ERRNO is correctly set
  */
 int 
-closeConnection(const char* sockname)
-{
-    return 0;
-}
+closeConnection(const char* sockname);
 
 /**
  * \brief Tries to open the file specified in the path variable pathname with the specified flags.
@@ -42,10 +35,7 @@ closeConnection(const char* sockname)
  * \return 0 if the file is correctly opened, -1 otherwise. ERRNO is correctly set
  */
 int
-openFile(const char* pathname, int flags)
-{
-    return 0;
-}
+openFile(const char* pathname, int flags);
 
 /**
  * \brief Tries to read the file specified in the path variable pathname. If the file exists 
@@ -58,10 +48,7 @@ openFile(const char* pathname, int flags)
  * \return 0 if the file is correctly read, -1 otherwise. ERRNO is correctly set
  */
 int 
-readFile(const char* pathname, void** buf, size_t* size)
-{
-    return 0;
-}
+readFile(const char* pathname, void** buf, size_t* size);
 
 /**
  * \brief Tries to read N random files from the server. If N is 0 or greater than the actual
@@ -75,10 +62,7 @@ readFile(const char* pathname, void** buf, size_t* size)
  * \return 0 if all files are correctly read, -1 otherwise. ERRNO is correctly set
  */
 int 
-readNFiles(int N, const char* dirname)
-{
-    return 0;
-}
+readNFiles(int N, const char* dirname);
 
 /**
  * \brief Tries to write the file specified in the path variable pathname. If dirname is not NULL,
@@ -91,10 +75,7 @@ readNFiles(int N, const char* dirname)
  * \return 0 if the file is correctly written, -1 otherwise. ERRNO is correctly set
  */
 int 
-writeFile(const char* pathname, const char* dirname)
-{
-    return 0;
-}
+writeFile(const char* pathname, const char* dirname);
 
 /**
  * \brief Tries to lock the append the contents in buffer buf of size size to the file specified in
@@ -109,10 +90,7 @@ writeFile(const char* pathname, const char* dirname)
  * \return 0 if the file is correctly locked, -1 otherwise. ERRNO is correctly set
  */
 int 
-appendToFile(const char* pathname, void* buf, size_t size, const char* dirname)
-{
-    return 0;
-}
+appendToFile(const char* pathname, void* buf, size_t size, const char* dirname);
 
 /**
  * \brief Tries to lock the file specified in the path variable pathname.
@@ -122,10 +100,7 @@ appendToFile(const char* pathname, void* buf, size_t size, const char* dirname)
  * \return 0 if the file is correctly locked, -1 otherwise. ERRNO is correctly set
  */
 int 
-lockFile(const char* pathname)
-{
-    return 0;
-}
+lockFile(const char* pathname);
 
 /**
  * \brief Tries to unlock the file specified in the path variable pathname.
@@ -135,10 +110,7 @@ lockFile(const char* pathname)
  * \return 0 if the file is correctly unlocked, -1 otherwise. ERRNO is correctly set
  */
 int 
-unlockFile(const char* pathname)
-{
-    return 0;
-}
+unlockFile(const char* pathname);
 
 /**
  * \brief Tries to close the file specified in the path variable pathname.
@@ -148,10 +120,7 @@ unlockFile(const char* pathname)
  * \return 0 if the file is correctly closed, -1 otherwise. ERRNO is correctly set
  */
 int 
-closeFile(const char* pathname)
-{
-    return 0;
-}
+closeFile(const char* pathname);
 
 /**
  * \brief Tries to delete the file specified in the path variable pathname.
@@ -161,9 +130,6 @@ closeFile(const char* pathname)
  * \return 0 if the file is correctly deleted, -1 otherwise. ERRNO is correctly set
  */
 int 
-removeFile(const char* pathname)
-{
-    return 0;
-}
+removeFile(const char* pathname);
 
 #endif
