@@ -2,8 +2,6 @@
 #define OPTION_PARSER_H
 
 #include <getopt.h>
-#include <stdlib.h>
-#include <errno.h>
 
 #include "client/include/client_config.h"
 
@@ -22,18 +20,17 @@ typedef enum _option_code {
 
 /* (String, Int) pair */
 typedef struct _str_int_pair {
-    char    dirname[1024];
-    int     how_many;
+    char    dir[MAX_PATH];
+    int     num;
 } str_int_pair;
 
 /* Type of an option */
 typedef struct _option_t {
     option_code     code;                           // its code
     union {
-        queue_t      *files_list;                    // list of arguments (for -r, -W, -l, -u, -c) TODO? change to 2D array
+        queue_t      *files_list;                   // list of arguments (for -r, -W, -l, -u, -c) TODO? change to 2D array
         int          how_many_files;                // number of files (for -R)
         str_int_pair w_arg;                         // directory and number of files (for -w)    
-        // TODO: aggiungere -w nome, N (str, int)
     };
 } option_t;
 
