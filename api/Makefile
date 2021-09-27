@@ -41,7 +41,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 $(LIBDIR)/%.so: $(OBJ)
 	$(CC) -shared -o $@ $^
 
-.PHONY: api clean 
+.PHONY: api clean cleanall
 .DEFAULT_GOAL := all
 
 all: 
@@ -51,4 +51,7 @@ api:
 	@make $(API)
 
 clean:
+	$(RM) $(OBJ) $(DEP)
+
+cleanall:
 	$(RM) $(OBJ) $(DEP) $(API)
