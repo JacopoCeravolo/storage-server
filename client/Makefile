@@ -86,11 +86,11 @@ dir:
 debug: $(BIN)
 debug: CFLAGS += $(DEBUG)
 debug: 
-	@echo "Executing client with options: $(PARAMS)"
+	@echo "Running client with options: $(PARAMS)"
 	./$(BIN) $(PARAMS)
 
 memcheck: $(BIN)
-	@echo "Executing client with options: $(PARAMS)"
+	@echo "Running valgrind on client with options: $(PARAMS)"
 	@valgrind --leak-check=full ./$(BIN) $(PARAMS)
 
 clean:

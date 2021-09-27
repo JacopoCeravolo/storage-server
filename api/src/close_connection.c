@@ -3,5 +3,5 @@
 int 
 closeConnection(const char* sockname)
 {
-    return -1;
+    return 0;
 }

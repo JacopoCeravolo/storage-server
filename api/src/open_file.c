@@ -3,5 +3,5 @@
 int
 openFile(const char* pathname, int flags)
 {
-    return -1;
+    return 0;
 }

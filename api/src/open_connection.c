@@ -2,5 +2,5 @@
 int 
 openConnection(const char* sockname, int msec, const struct timespec abstime)
 {
-    return -1;
+    return 0;
 }

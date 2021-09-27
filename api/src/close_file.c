@@ -3,5 +3,5 @@
 int 
 closeFile(const char* pathname)
 {
-    return -1;
+    return 0;
 }

@@ -42,6 +42,6 @@ const char*
 option_to_str(option_code code);
 
 int
-parse_options(int argc,  const char *argv[], const char *options_str);
+parse_options(int argc, char * const argv[], const char *options_str);
 
 #endif
