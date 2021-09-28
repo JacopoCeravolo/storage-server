@@ -4,13 +4,12 @@ LD			= gcc
 RM			= rm -rf
 
 # Directories
-PROJDIR		= $(realpath ../)
 SRCDIR		= src
 OBJDIR		= obj
 BINDIR		= bin
-INCDIR		= $(PROJDIR)
-APIDIR 		= $(PROJDIR)/api
-UTILDIR		= $(PROJDIR)/utils
+INCDIR		= $(PROJECT_DIR)
+APIDIR 		= $(PROJECT_DIR)/api
+UTILDIR		= $(PROJECT_DIR)/utils
 
 # Targets
 TARGET		= client
@@ -30,6 +29,7 @@ LINK_QUEUE	+= -lqueue
  
 LINK_ALL	= $(LINK_API)
 LINK_ALL	+= $(LINK_QUEUE)
+
 # Flags
 CFLAGS		:= -std=c99 
 INCLUDES	= -I$(INCDIR)
@@ -46,6 +46,11 @@ ALL_CFLAGS		+= -Wconversion -Wsign-conversion -Wjump-misses-init
 ALL_CFLAGS		+= -Wno-multichar -Wpacked -Wstrict-overflow -Wvla
 ALL_CFLAGS		+= -Wformat -Wno-format-zero-length -Wstrict-prototypes
 ALL_CFLAGS		+= -Wno-unknown-warning-option
+
+# Parameter list for debugging and memchecking
+PARAMS	:= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
+		   -l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
+		   -f ./tmp/filestorage.sk -D trash_here/ -d read_here/
 
 # Source, Binaries, Dependencies
 SRC			:= $(shell find $(SRCDIR) -type f -name '*.c')
@@ -66,7 +71,7 @@ $(BIN): $(OBJ)
 	$(LD) $(CFLAGS) -o $@ $^ $(LINK_ALL)
 
 # Build Rules
-.PHONY: clean memcheck debug
+.PHONY: clean memcheck debug cleanall
 .DEFAULT_GOAL := all
 
 all: setup $(BIN)
@@ -78,17 +83,18 @@ dir:
 	@mkdir -p $(OBJDIR)
 	@mkdir -p $(BINDIR)
 
+debug: $(BIN)
 debug: CFLAGS += $(DEBUG)
-debug: remake
+debug: 
+	@echo "Executing client with options: $(PARAMS)"
+	./$(BIN) $(PARAMS)
 
-PARAMS	:= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
-		   -l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
-		   -f ./tmp/filestorage.sk -D trash_here/ -d read_here/
-memcheck:
-	@make remake
+memcheck: $(BIN)
+	@echo "Executing client with options: $(PARAMS)"
 	@valgrind --leak-check=full ./$(BIN) $(PARAMS)
-	@make clean
 
 clean:
+	$(RM) $(OBJ) $(DEP)
+
+cleanall:
 	$(RM) $(OBJ) $(DEP) $(BIN)
-	$(RMDIR) $(OBJDIR) $(BINDIR) 2> /dev/null; true

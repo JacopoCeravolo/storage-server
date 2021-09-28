@@ -65,7 +65,7 @@ main(int argc, char const *argv[])
     LOG_INFO(BOLD "CLIENT CONFIGURATION\n" RESET);
     LOG_INFO(BOLD "SOCKET:      " RESET "%s\n", config->socket_name);
     LOG_INFO(BOLD "VERBOSE:     " RESET "%s\n", (config->verbose) ? "true" : "false");
-    LOG_INFO(BOLD "WAIT TIME:   " RESET "%d\n", config->wait_time);
+    LOG_INFO(BOLD "WAIT TIME:   " RESET "%ld\n", config->wait_time);
     LOG_INFO(BOLD "READ DIR:    " RESET "%s\n", config->reading_dir);
     LOG_INFO(BOLD "TRASH DIR:   " RESET "%s\n", config->expelled_dir);
 
