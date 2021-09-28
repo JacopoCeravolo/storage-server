@@ -7,12 +7,12 @@ RM			= rm -rf
 SRCDIR		= src
 OBJDIR		= obj
 BINDIR		= bin
-INCDIR		= $(PROJECT_DIR)
-APIDIR 		= $(PROJECT_DIR)/api
-UTILDIR		= $(PROJECT_DIR)/utils
+INCDIR		= $(ORIGIN)
+APIDIR 		= $(ORIGIN)/api
+UTILDIR		= $(ORIGIN)/utils
 
 # Targets
-TARGET		= client
+TARGET		= client 
 
 # Library targets
 QUEUE 		= $(UTILDIR)/libs/libqueue.so

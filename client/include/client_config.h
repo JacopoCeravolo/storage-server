@@ -4,12 +4,12 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define CLIENT_OPTIONS  ":f:t:w:W:D:r:R:d:l:u:c:ph"
-#define SAFE_SOCKET_PATH "./tmp/filestorage.sk"
-#define DIRECTORY_NOT_SET "###"
-#define MAX_ARGS    10   
-#define MAX_PATH    256 
-#define MAX_SOCKET_PATH 256   
+#define CLIENT_OPTIONS      ":f:t:w:W:D:r:R:d:l:u:c:ph"
+#define SAFE_SOCKET_PATH     "/tmp/socket.sk"
+#define DIRECTORY_NOT_SET   "###"
+#define MAX_ARGS            10   
+#define MAX_PATH            256 
+#define MAX_SOCKET_PATH     256   
 
 #ifndef DEBUG
 #define DEBUG   false

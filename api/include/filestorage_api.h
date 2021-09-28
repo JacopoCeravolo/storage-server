@@ -1,10 +1,19 @@
 #ifndef FILESTORAGE_API_H
 #define FILESTORAGE_API_H
 
-#include <stddef.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
 #include <linux/time.h>
+#include <sys/stat.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <sys/uio.h>
+#include <sys/un.h>
 
-static long socket_fd;
+long socket_fd; 
 
 
 /**

@@ -69,8 +69,19 @@ main(int argc, char * const argv[])
     LOG_INFO(BOLD "READ DIR:    " RESET "%s\n", config->reading_dir);
     LOG_INFO(BOLD "TRASH DIR:   " RESET "%s\n", config->expelled_dir);
 
-    
-    printf("\n");
+    /* Connects to socket */
+    // LOG_DEBUG("connecting to socket [%s]\n", config->socket_name);
+
+    struct timespec abstime;
+    if (openConnection(config->socket_name, 0, abstime) != 0) {
+        LOG_FATAL("connection not enstablished, ERROR: %s\n", strerror(errno));
+        LOG_INFO("Exiting...\n");
+        // clear option queue
+        free(config);
+        return -1;
+    }
+
+    LOG_INFO("Connection enstablished\n");
     // LOG_INFO(BOLD "PARSED OPTIONS\n" RESET);
     option_t opt;
     while (!isEmpty(option_list)) {
@@ -78,8 +89,18 @@ main(int argc, char * const argv[])
         execute_request(opt);
     }
 
+    if (closeConnection(config->socket_name) != 0) {
+        LOG_FATAL("connection is not closed, ERROR: %s\n", strerror(errno));
+        destroyQueue(option_list);
+        free(config);
+        return -1;
+    }
+
+    LOG_INFO("Connection closed\n");
+    LOG_INFO("Cleaning up..\n");
     destroyQueue(option_list);
     free(config);
+    LOG_INFO("Exiting\n");
     return 0;
 }
 

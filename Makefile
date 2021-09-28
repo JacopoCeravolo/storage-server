@@ -1,13 +1,26 @@
-PROJECT_DIR 	= $(realpath ./)
-export PROJECT_DIR
+ORIGIN 	= $(realpath ./)
+export ORIGIN
+
+CLIENT_DIR 	= client/
+API_DIR		= api/
+SERVER_DIR 	= server/
+UTILS_DIR 	= utils/
+
+CLIENT		= $(CLIENT_DIR)/bin/client
+SERVER		= $(SERVER_DIR)/bin/server
 
 MAKEFLAGS := -s
 
-.PHONY: client api utils cleanall cleanutils cleanclient cleanapi memcheck debug
+.PHONY: client server api utils \
+		cleanall cleanutils cleanclient cleanapi \
+		memcheck debug basic_test
 .DEFAULT_GOAL := all
 
 client:
 	$(MAKE) -C client
+
+server:
+	$(MAKE) -C server
 
 api:
 	$(MAKE) -C api
@@ -23,6 +36,13 @@ all:
 	@echo "Built API"
 	@make client
 	@echo "Built client"
+
+basic_test:
+	@make all
+	@echo "Moving executables to test directory"
+	@cp $(SERVER) ./test 
+	@cp $(CLIENT) ./test
+	@echo "Executables are ready"
 
 memcheck:
 	@make all
@@ -49,4 +69,6 @@ cleanall:
 	@make cleanutils
 	@make cleanapi
 	@make cleanclient
+	@rm -rf $(SERVER)
+	@rm -rf test/*
 	@echo "All clean now!"

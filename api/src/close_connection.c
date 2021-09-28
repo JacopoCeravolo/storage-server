@@ -3,5 +3,6 @@
 int 
 closeConnection(const char* sockname)
 {
-    return -1;
+    close(socket_fd);
+    return 0;
 }

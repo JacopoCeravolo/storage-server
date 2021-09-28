@@ -5,16 +5,21 @@ RM			= rm -rf
 
 # Directories
 SRCDIR		= src
-INCDIR		= include
 OBJDIR		= obj
 LIBDIR 		= libs
+INCDIR		= include
 
 # Library targets
 API 		= $(LIBDIR)/libfilestorage_api.so
 
 # Flags
 CFLAGS		:= -Wall -std=c99 -pedantic -g
-INCLUDES	= -I$(INCDIR)
+INCLUDES	= -I$(INCDIR) 
+
+# Linking
+LINK_API 	= -Wl,-rpath,$(APIDIR)/libs
+LINK_API	+= -L $(APIDIR)/libs
+LINK_API	+= -lfilestorage_api
 
 # Compiler Flags
 ALL_CFLAGS		:= $(CFLAGS)
@@ -41,7 +46,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 $(LIBDIR)/%.so: $(OBJ)
 	$(CC) -shared -o $@ $^
 
-.PHONY: api clean cleanall
+
+.PHONY: api clean cleanall testlib
 .DEFAULT_GOAL := all
 
 all: 
