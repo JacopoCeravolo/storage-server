@@ -4,6 +4,9 @@
 #include <stddef.h> 
 #include <linux/time.h>
 
+static long socket_fd;
+
+
 /**
  * \brief Tries to open a connection to the socket file specified in the path variable socketname, 
  *        if the connection is not accepted immediatly tries again for msec millisecond until abstime

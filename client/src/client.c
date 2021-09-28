@@ -20,7 +20,7 @@ queue_t     *option_list;
 config_t    *config; 
 
 int 
-main(int argc, char const *argv[])
+main(int argc, char * const argv[])
 {
     /* Check if the program has at least one argument */
     if (argc < 2) {
