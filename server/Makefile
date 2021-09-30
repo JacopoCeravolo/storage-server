@@ -15,16 +15,20 @@ TARGET		= server
 
 # Library targets
 QUEUE 		= $(UTILDIR)/libs/libqueue.so
+PROTOCOL	= $(UTILDIR)/libs/libprotocol.so
 
-LINK_QUEUE 	= -Wl,-rpath,$(UTILDIR)/libs
-LINK_QUEUE	+= -L $(UTILDIR)/libs
-LINK_QUEUE	+= -lqueue
+LINK_PROTOCOL 	= -Wl,-rpath,$(UTILDIR)/libs
+LINK_PROTOCOL	+= -L $(UTILDIR)/libs
+LINK_PROTOCOL	+= -lprotocol
+ 
+LINK_ALL	= $(LINK_PROTOCOL)
 
-LINK_ALL	= $(LINK_QUEUE)
+
 
 # Flags
 CFLAGS		:= -std=c99 
 DEBUG		= -DDEBUG=true -g
+INCLUDES	= -I$(INCDIR)
 
 
 # Compiler Flags
@@ -59,7 +63,7 @@ $(LIBDIR)/%.so: $(OBJ)
 	$(CC) -shared -o $@ $<
 
 $(BIN): $(OBJ)
-	$(LD) $(CFLAGS) -o $@ $^ 
+	$(LD) $(CFLAGS) -o $@ $^ $(LINK_ALL)
 
 # Build Rules
 .PHONY: clean cleanall

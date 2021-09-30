@@ -13,6 +13,8 @@
 #include <sys/uio.h>
 #include <sys/un.h>
 
+#include "utils/include/protocol.h"
+
 long socket_fd; 
 
 

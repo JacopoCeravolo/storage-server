@@ -48,18 +48,19 @@ $(LIBDIR)/%.so: $(OBJ)
 
 all: 
 	@make queue
+	@make protocol
 
 queue: $(QUEUE)
 
 protocol: $(PROTOCOL)
 
 test_protocol: $(PROTOCOL)
-	$(CC) -I$(INCDIR) -o server server.c -Wl,-rpath,$(LIBDIR)/ -L $(LIBDIR)/ -lprotocol
-	$(CC) -I$(INCDIR) -o client client.c -Wl,-rpath,$(LIBDIR) -L $(LIBDIR)/ -lprotocol
+	$(CC) -I$(INCDIR) -o server server.c -Wl,-rpath=./$(LIBDIR)/ -L ./$(LIBDIR)/ -lqueue
+	$(CC) -I$(INCDIR) -o client client.c -Wl,-rpath=./$(LIBDIR) -L ./$(LIBDIR)/ -lqueue
 	
 
 clean:
 	$(RM) $(OBJ) $(DEP) 
 
 cleanall:
-	$(RM) $(OBJ) $(DEP) $(QUEUE)
+	$(RM) $(OBJ) $(DEP) $(QUEUE) $(PROTOCOL)

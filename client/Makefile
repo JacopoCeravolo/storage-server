@@ -17,6 +17,7 @@ TARGET		= client
 # Library targets
 QUEUE 		= $(UTILDIR)/libs/libqueue.so
 API 		= $(APIDIR)/libs/libfilestorage_api.so
+PROTOCOL	= $(UTILDIR)/libs/libprotocol.so
 
 # Linking
 LINK_API 	= -Wl,-rpath,$(APIDIR)/libs
@@ -26,9 +27,14 @@ LINK_API	+= -lfilestorage_api
 LINK_QUEUE 	= -Wl,-rpath,$(UTILDIR)/libs
 LINK_QUEUE	+= -L $(UTILDIR)/libs
 LINK_QUEUE	+= -lqueue
+
+LINK_PROTOCOL 	= -Wl,-rpath,$(UTILDIR)/libs
+LINK_PROTOCOL	+= -L $(UTILDIR)/libs
+LINK_PROTOCOL	+= -lprotocol
  
 LINK_ALL	= $(LINK_API)
 LINK_ALL	+= $(LINK_QUEUE)
+LINK_ALL	+= $(LINK_PROTOCOL)
 
 # Flags
 CFLAGS		:= -std=c99 

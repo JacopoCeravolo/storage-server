@@ -69,6 +69,7 @@ main(int argc, char * const argv[])
     LOG_INFO(BOLD "READ DIR:    " RESET "%s\n", config->reading_dir);
     LOG_INFO(BOLD "TRASH DIR:   " RESET "%s\n", config->expelled_dir);
 
+    
     /* Connects to socket */
     // LOG_DEBUG("connecting to socket [%s]\n", config->socket_name);
 

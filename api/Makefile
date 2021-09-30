@@ -7,7 +7,7 @@ RM			= rm -rf
 SRCDIR		= src
 OBJDIR		= obj
 LIBDIR 		= libs
-INCDIR		= include
+INCDIR		= $(ORIGIN)
 
 # Library targets
 API 		= $(LIBDIR)/libfilestorage_api.so

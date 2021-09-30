@@ -1,4 +1,4 @@
-#include "filestorage_api.h"
+#include "api/include/filestorage_api.h"
 
 int 
 openConnection(const char* sockname, int msec, const struct timespec abstime)
@@ -20,6 +20,15 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
         perror("connect() failed");
        return -1;
     }
+
+    message_t *msg = malloc(sizeof(message_t));
+    char      *buffer = malloc(MAX_PATH);
+    strcpy(buffer, "Message\n");
+    set_message(msg, RES_UNKNOWN, "file", strlen(buffer) + 1, buffer);
+
+    send_message(socket_fd, msg);
+
+    recv_message(socket_fd, msg);
     
     return 0;
 }

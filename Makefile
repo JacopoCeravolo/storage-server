@@ -9,7 +9,7 @@ UTILS_DIR 	= utils/
 CLIENT		= $(CLIENT_DIR)/bin/client
 SERVER		= $(SERVER_DIR)/bin/server
 
-MAKEFLAGS := -s
+#MAKEFLAGS := -s
 
 .PHONY: client server api utils \
 		cleanall cleanutils cleanclient cleanapi \
@@ -30,12 +30,18 @@ utils:
 
 all:
 	@echo "Building application..."
+	@echo "Building utilities..."
 	@make utils
-	@echo "Built utilites"
+	@echo "Utilities built"
+	@echo "Building API..."
 	@make api
-	@echo "Built API"
+	@echo "API built"
+	@echo "Building client..."
 	@make client
-	@echo "Built client"
+	@echo "Client built"
+	@echo "Building server..."
+	@make server
+	@echo "Server built"
 
 basic_test:
 	@make all
