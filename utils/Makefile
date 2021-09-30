@@ -11,6 +11,7 @@ LIBDIR 		= libs
 
 # Library targets
 QUEUE 		= $(LIBDIR)/libqueue.so
+PROTOCOL 	= $(LIBDIR)/libprotocol.so
 
 # Flags
 CFLAGS		:= -Wall -std=c99 -pedantic -g
@@ -39,15 +40,23 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 
 # General rule for libraries
 $(LIBDIR)/%.so: $(OBJ)
+	$(RM) $@
 	$(CC) -shared -o $@ $<
 
-.PHONY: queue clean cleanall
+.PHONY: queue clean cleanall protocol test_protocol
 .DEFAULT_GOAL := all
 
 all: 
 	@make queue
 
 queue: $(QUEUE)
+
+protocol: $(PROTOCOL)
+
+test_protocol: $(PROTOCOL)
+	$(CC) -I$(INCDIR) -o server server.c -Wl,-rpath,$(LIBDIR)/ -L $(LIBDIR)/ -lprotocol
+	$(CC) -I$(INCDIR) -o client client.c -Wl,-rpath,$(LIBDIR) -L $(LIBDIR)/ -lprotocol
+	
 
 clean:
 	$(RM) $(OBJ) $(DEP) 
