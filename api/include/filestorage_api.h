@@ -13,7 +13,10 @@
 #include <sys/uio.h>
 #include <sys/un.h>
 
+#include "utils/include/utilities.h"
 #include "utils/include/protocol.h"
+
+#define HANDSHAKE_MSG   "REQUESTING CONNECTION"
 
 long socket_fd; 
 

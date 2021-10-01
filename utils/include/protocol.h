@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#define MAX_PATH    4096
+#include "utilities.h"
 
 typedef enum {
     
@@ -50,10 +50,10 @@ typedef struct _message_t {
 } message_t;
 
 void
-set_header(header_t *header, msg_code code, char *filename, size_t msg_sz);
+set_header(header_t *header, msg_code code, const char *filename, size_t msg_sz);
 
 void
-set_message(message_t *msg, msg_code code, char *filename, size_t size, void* body);
+set_message(message_t *msg, msg_code code, const char *filename, size_t size, void* body);
 
 void
 send_message(int conn_fd, message_t *msg);

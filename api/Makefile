@@ -13,7 +13,6 @@ INCDIR		= $(ORIGIN)
 API 		= $(LIBDIR)/libfilestorage_api.so
 
 # Flags
-CFLAGS		:= -Wall -std=c99 -pedantic -g
 INCLUDES	= -I$(INCDIR) 
 
 # Linking

@@ -26,7 +26,6 @@ LINK_ALL	= $(LINK_PROTOCOL)
 
 
 # Flags
-CFLAGS		:= -std=c99 
 DEBUG		= -DDEBUG=true -g
 INCLUDES	= -I$(INCDIR)
 

@@ -1,21 +1,45 @@
+# Project directory
 ORIGIN 	= $(realpath ./)
 export ORIGIN
 
+# Printing
+RED		= \033[1m\033[31m
+GREEN	= \033[1m\033[32m
+BOLD	= \033[1m
+RESET	= \033[0m
+
+# Project sub-modules
 CLIENT_DIR 	= client/
 API_DIR		= api/
 SERVER_DIR 	= server/
 UTILS_DIR 	= utils/
 
+# Executables
 CLIENT		= $(CLIENT_DIR)/bin/client
 SERVER		= $(SERVER_DIR)/bin/server
 
-#MAKEFLAGS := -s
+# Make flags
+MAKEFLAGS += --no-print-directory
+export MAKEFLAGS
 
+# Compiler flags
+CFLAGS		+= -Wall -std=c99
+export CFLAGS
+DEBUG		= -DDEBUG=true -g
+
+# Parameter list for debugging and memchecking
+CLIENT_PARAMS	:= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
+		   			-l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
+		   			-D trash_here/ -d read_here/
+
+# Targets
 .PHONY: client server api utils \
 		cleanall cleanutils cleanclient cleanapi \
-		memcheck debug basic_test
+		run_server run_client \
+		memcheck debug
 .DEFAULT_GOAL := all
 
+# Rules
 client:
 	$(MAKE) -C client
 
@@ -29,52 +53,54 @@ utils:
 	$(MAKE) -C utils
 
 all:
-	@echo "Building application..."
-	@echo "Building utilities..."
+	@echo "${BOLD}Building application... ${RESET}"
+	@echo "${BOLD}Building utilities... ${RESET}"
 	@make utils
-	@echo "Utilities built"
-	@echo "Building API..."
+	@echo "${GREEN}Utilities built ${RESET}"
+	@echo "${BOLD}Building API... ${RESET}"
 	@make api
-	@echo "API built"
-	@echo "Building client..."
+	@echo "${GREEN}API built ${RESET}"
+	@echo "${BOLD}Building client... ${RESET}"
 	@make client
-	@echo "Client built"
-	@echo "Building server..."
+	@echo "${GREEN}Client built ${RESET}"
+	@echo "${BOLD}Building server... ${RESET}"
 	@make server
-	@echo "Server built"
+	@echo "${GREEN}Server built ${RESET}"
 
-basic_test:
+debug: CFLAGS += $(DEBUG)
+debug: 
 	@make all
-	@echo "Moving executables to test directory"
-	@cp $(SERVER) ./test 
-	@cp $(CLIENT) ./test
-	@echo "Executables are ready"
 
-memcheck:
-	@make all
-	@cd client && make memcheck
+run_server:
+	./$(SERVER)
 
-debug:
-	@make all
-	@cd client && make debug
+run_client:
+	./$(CLIENT) $(CLIENT_PARAMS)
 
+client_memcheck:
+	@valgrind -v --track-origins=yes --leak-check=full ./$(CLIENT) $(CLIENT_PARAMS)
+server_memcheck:
+	@valgrind -v --track-origins=yes --leak-check=full ./$(SERVER)
 cleanutils:
 	@cd utils && make cleanall
-	@echo "Utilities removed"
+	@echo "${GREEN}Utilites removed ${RESET}"
 
 cleanapi:
 	@cd api && make cleanall
-	@echo "API removed"
+	@echo "${GREEN}API removed ${RESET}"
 
 cleanclient:
 	@cd client && make cleanall
-	@echo "Client removed"
+	@echo "${GREEN}Client removed ${RESET}"
+
+cleanserver:
+	@cd server && make cleanall
+	@echo "${GREEN}Server removed ${RESET}"
 
 cleanall:
-	@echo "Cleaning up..."
+	@echo "${BOLD}Cleaning up... ${RESET}"
 	@make cleanutils
 	@make cleanapi
 	@make cleanclient
-	@rm -rf $(SERVER)
-	@rm -rf test/*
-	@echo "All clean now!"
+	@make cleanserver
+	@echo "${GREEN}All clean now!${RESET}"

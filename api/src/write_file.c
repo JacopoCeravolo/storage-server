@@ -3,5 +3,5 @@
 int 
 writeFile(const char* pathname, const char* dirname)
 {
-    return -1;
+    return 0;
 }

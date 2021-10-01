@@ -3,5 +3,5 @@
 int 
 lockFile(const char* pathname)
 {
-    return -1;
+    return 0;
 }

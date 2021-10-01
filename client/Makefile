@@ -24,20 +24,16 @@ LINK_API 	= -Wl,-rpath,$(APIDIR)/libs
 LINK_API	+= -L $(APIDIR)/libs
 LINK_API	+= -lfilestorage_api
 
-LINK_QUEUE 	= -Wl,-rpath,$(UTILDIR)/libs
-LINK_QUEUE	+= -L $(UTILDIR)/libs
-LINK_QUEUE	+= -lqueue
+LINK_UTILS 	= -Wl,-rpath,$(UTILDIR)/libs
+LINK_UTILS	+= -L $(UTILDIR)/libs
+LINK_UTILS	+= -lqueue
+LINK_UTILS  += -lprotocol
 
-LINK_PROTOCOL 	= -Wl,-rpath,$(UTILDIR)/libs
-LINK_PROTOCOL	+= -L $(UTILDIR)/libs
-LINK_PROTOCOL	+= -lprotocol
  
 LINK_ALL	= $(LINK_API)
-LINK_ALL	+= $(LINK_QUEUE)
-LINK_ALL	+= $(LINK_PROTOCOL)
+LINK_ALL	+= $(LINK_UTILS)
 
 # Flags
-CFLAGS		:= -std=c99 
 INCLUDES	= -I$(INCDIR)
 DEBUG		= -DDEBUG=true -g
 
@@ -92,11 +88,11 @@ dir:
 debug: $(BIN)
 debug: CFLAGS += $(DEBUG)
 debug: 
-	@echo "Executing client with options: $(PARAMS)"
+	@echo "Running client with options: $(PARAMS)"
 	./$(BIN) $(PARAMS)
 
 memcheck: $(BIN)
-	@echo "Executing client with options: $(PARAMS)"
+	@echo "Running valgrind on client with options: $(PARAMS)"
 	@valgrind --leak-check=full ./$(BIN) $(PARAMS)
 
 clean:

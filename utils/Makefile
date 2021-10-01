@@ -14,7 +14,6 @@ QUEUE 		= $(LIBDIR)/libqueue.so
 PROTOCOL 	= $(LIBDIR)/libprotocol.so
 
 # Flags
-CFLAGS		:= -Wall -std=c99 -pedantic -g
 INCLUDES	= -I$(INCDIR)
 
 # Compiler Flags
@@ -50,9 +49,17 @@ all:
 	@make queue
 	@make protocol
 
-queue: $(QUEUE)
+queue: 
+	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/queue.o $(SRCDIR)/queue.c
+	$(RM) $(QUEUE)
+	$(CC) -shared -o $(QUEUE) $(OBJDIR)/queue.o
 
-protocol: $(PROTOCOL)
+
+protocol: 
+	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/protocol.o $(SRCDIR)/protocol.c
+	$(RM) $(PROTOCOL)
+	$(CC) -shared -o $(PROTOCOL) $(OBJDIR)/protocol.o
+
 
 test_protocol: $(PROTOCOL)
 	$(CC) -I$(INCDIR) -o server server.c -Wl,-rpath=./$(LIBDIR)/ -L ./$(LIBDIR)/ -lqueue

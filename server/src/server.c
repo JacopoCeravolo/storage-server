@@ -13,19 +13,21 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <stdlib.h>
+#include "utils/include/utilities.h"
 #include "utils/include/protocol.h"
 
 /**************************************************************************/
 /* Constants used by this program                                         */
 /**************************************************************************/
-#define SERVER_PATH     "/tmp/socket"
-#define BUFFER_LENGTH    250
+
+#define HANDSHAKE_MSG   "CONNECTION ACCEPTED"
+
 #define FALSE              0
 
 void
 cleanup()
 {
-   unlink(SERVER_PATH);
+   unlink(DEFAULT_SOCKET_PATH);
 }
 int 
 main(int argc, char * const argv[])
@@ -33,7 +35,7 @@ main(int argc, char * const argv[])
    atexit(cleanup);
 
    int    sd=-1, sd2=-1;
-   int    rc, length;
+   int    rc;
    // char   buffer[BUFFER_LENGTH];
    struct sockaddr_un serveraddr;
 
@@ -41,7 +43,7 @@ main(int argc, char * const argv[])
    do
    {
 
-      unlink(SERVER_PATH);
+      unlink(DEFAULT_SOCKET_PATH);
       sd = socket(AF_UNIX, SOCK_STREAM, 0);
       if (sd < 0)
       {
@@ -51,7 +53,7 @@ main(int argc, char * const argv[])
 
       memset(&serveraddr, 0, sizeof(serveraddr));
       serveraddr.sun_family = AF_UNIX;
-      strcpy(serveraddr.sun_path, SERVER_PATH);
+      strcpy(serveraddr.sun_path, DEFAULT_SOCKET_PATH);
 
       rc = bind(sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
       if (rc < 0)
@@ -67,7 +69,7 @@ main(int argc, char * const argv[])
          break;
       }
 
-      printf("Ready for client connect().\n");
+      printf("> Ready for client connect().\n");
 
 
       sd2 = accept(sd, NULL, NULL);
@@ -77,7 +79,7 @@ main(int argc, char * const argv[])
          break;
       }
 
-      printf("connection accepted\n");
+      printf("> Connection accepted\n");
 
 
 
@@ -90,26 +92,20 @@ main(int argc, char * const argv[])
       printf("Code:      %s\n", msg_code_to_str(msg->header.code));
       printf("File:      %s\n",msg->header.filename);
       printf("Body Size: %ld\n", msg->header.msg_size);
-      printf("\nBODY\n");
-      printf("%s\n", (char*)msg->body);
+      printf("BODY:\n");
+      printf("%s\n\n", (char*)msg->body);
 
       char      *buffer = malloc(MAX_PATH);
 
-      strcpy(buffer, "Short string\n");
+      strcpy(buffer, HANDSHAKE_MSG);
 
-      set_message(msg, RES_SUCCESS, "file.txt", strlen(buffer) + 1, buffer);
-
-      printf("\nRESPONSE\n");
-      printf("\nMESSAGE HEADER:\n");
-      printf("Code:      %s\n", msg_code_to_str(msg->header.code));
-      printf("File:      %s\n",msg->header.filename);
-      printf("Body Size: %ld\n", msg->header.msg_size);
-      printf("\nBODY\n");
-      printf("%s\n", (char*)msg->body);
+      set_message(msg, RES_SUCCESS, DEFAULT_SOCKET_PATH, strlen(buffer) + 1, buffer);
       
       send_message(sd2, msg);
       
-
+      free(buffer);
+      free(msg->body);
+      free(msg);
    
 
    } while (FALSE);

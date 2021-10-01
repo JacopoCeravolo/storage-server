@@ -5,6 +5,7 @@
 
 #include "client/include/client_config.h"
 
+#include "utils/include/utilities.h"
 #include "utils/include/queue.h"
 
 /* Enum type describing the different option available */

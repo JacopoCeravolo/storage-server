@@ -32,7 +32,7 @@ parse_options(int argc,  char * const argv[], const char *options_str)
             }
             case 'f': {
                 if (DEBUG) LOG_DEBUG("set socket option recognized\n");
-                memset(config->socket_name, 0, MAX_SOCKET_PATH);
+                memset(config->socket_name, 0, MAX_PATH);
                 strcpy(config->socket_name, optarg);
                 if (DEBUG) LOG_DEBUG("socket name set to [%s]\n", config->socket_name);
                 break;

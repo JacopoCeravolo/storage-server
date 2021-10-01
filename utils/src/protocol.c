@@ -6,7 +6,7 @@
 #include "protocol.h"
 
 void
-set_header(header_t *header, msg_code code, char *filename, size_t msg_sz)
+set_header(header_t *header, msg_code code, const char *filename, size_t msg_sz)
 {
     header->code = code;
     memset(header->filename, 0, MAX_PATH);
@@ -15,9 +15,10 @@ set_header(header_t *header, msg_code code, char *filename, size_t msg_sz)
 }
 
 void
-set_message(message_t *msg, msg_code code, char *filename, size_t size, void* body)
+set_message(message_t *msg, msg_code code, const char *filename, size_t size, void* body)
 {
     msg->header.code = code;
+    memset(msg->header.filename, '0', MAX_PATH);
     strcpy(msg->header.filename, filename);
     msg->header.msg_size = size;
 
@@ -63,8 +64,10 @@ const char*
 msg_code_to_str(msg_code code)
 {
     switch (code) {
-        case REQ_OPEN:      return "OPEN";
         case RES_SUCCESS:   return "SUCCESS";
+        case RES_WELCOME:   return "WELCOME";
+        case REQ_WELCOME:   return "WELCOME";
+        case REQ_OPEN:      return "OPEN";
         default:            return "MSG_CODE";
     }
 }
