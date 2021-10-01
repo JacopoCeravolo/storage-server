@@ -14,6 +14,7 @@
 #include <sys/un.h>
 
 #include "utils/include/utilities.h"
+#include "utils/include/logger.h"
 #include "utils/include/protocol.h"
 
 #define HANDSHAKE_MSG   "REQUESTING CONNECTION"

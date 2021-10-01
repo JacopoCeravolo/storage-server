@@ -134,7 +134,7 @@ execute_request(option_t opt)
             while (!isEmpty(opt.files_list)) {
                 dequeue(opt.files_list, pathname);
                 if (readFile(pathname, &buffer, &size) != 0) {
-                    LOG_ERROR("could not read file [%s] from server.\n", pathname);
+                    LOG_ERROR("could not read file [%s] from server. ERROR: %s\n", pathname, strerror(errno));
                 } else {
                     LOG_INFO("successfully read file [%s] from server.\n", pathname);
                 }
@@ -165,7 +165,7 @@ execute_request(option_t opt)
             while (!isEmpty(opt.files_list)) {
                 dequeue(opt.files_list, pathname);
                 if (writeFile(pathname, abs_dirname) != 0) {
-                    LOG_ERROR("could not write file [%s] to server.\n", pathname);
+                    LOG_ERROR("could not write file [%s] to server. ERROR: %s\n", pathname, strerror(errno));
                 } else {
                     LOG_INFO("successfully written file [%s] to server.\n", pathname);
                 }

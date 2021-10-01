@@ -9,10 +9,10 @@ BOLD	= \033[1m
 RESET	= \033[0m
 
 # Project sub-modules
-CLIENT_DIR 	= client/
-API_DIR		= api/
-SERVER_DIR 	= server/
-UTILS_DIR 	= utils/
+CLIENT_DIR 	= client
+API_DIR		= api
+SERVER_DIR 	= server
+UTILS_DIR 	= utils
 
 # Executables
 CLIENT		= $(CLIENT_DIR)/bin/client
@@ -28,9 +28,9 @@ export CFLAGS
 DEBUG		= -DDEBUG=true -g
 
 # Parameter list for debugging and memchecking
-CLIENT_PARAMS	:= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
-		   			-l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
-		   			-D trash_here/ -d read_here/
+PARAMS	= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
+		   		-l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
+				-D trash_here/ -d read_here/
 
 # Targets
 .PHONY: client server api utils \
@@ -75,10 +75,10 @@ run_server:
 	./$(SERVER)
 
 run_client:
-	./$(CLIENT) $(CLIENT_PARAMS)
+	./$(CLIENT) $(PARAMS)
 
 client_memcheck:
-	@valgrind -v --track-origins=yes --leak-check=full ./$(CLIENT) $(CLIENT_PARAMS)
+	@valgrind -v --track-origins=yes --leak-check=full ./$(CLIENT) $(PARAMS)
 server_memcheck:
 	@valgrind -v --track-origins=yes --leak-check=full ./$(SERVER)
 cleanutils:
@@ -103,4 +103,4 @@ cleanall:
 	@make cleanapi
 	@make cleanclient
 	@make cleanserver
-	@echo "${GREEN}All clean now!${RESET}"
+	@echo "${BOLD}All clean now!${RESET}"

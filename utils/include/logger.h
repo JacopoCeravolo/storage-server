@@ -19,7 +19,7 @@ typedef enum _loglevel {
     LOG_LVL_FATAL       = 4,
 } loglevel;
 
-static char*
+static inline char*
 get_logname(loglevel lvl)
 {
     switch (lvl) {

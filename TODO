@@ -1,0 +1,12 @@
+[] CLIENT: aggiungere -w
+[] CLIENT: aggiungere d e D con flags
+[] CLIENT: aggiungere directory per letture/scritture singole
+[] CLIENT: cambiare queue -> array per argomenti opzione multipli
+
+[] QUEUE: aggiungere get_front
+
+[] API: api_error
+[] API: controllare errori libreria protocollo
+[] API: openConnection -> utilizzo struct timespec
+
+[] PROTOCOL: gestione errori read/write

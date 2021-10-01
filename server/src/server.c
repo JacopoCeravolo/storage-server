@@ -13,6 +13,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <stdlib.h>
+
+#include "utils/include/logger.h"
 #include "utils/include/utilities.h"
 #include "utils/include/protocol.h"
 
@@ -23,6 +25,7 @@
 #define HANDSHAKE_MSG   "CONNECTION ACCEPTED"
 
 #define FALSE              0
+#define TRUE               1
 
 void
 cleanup()
@@ -40,15 +43,13 @@ main(int argc, char * const argv[])
    struct sockaddr_un serveraddr;
 
 
-   do
-   {
 
       unlink(DEFAULT_SOCKET_PATH);
       sd = socket(AF_UNIX, SOCK_STREAM, 0);
       if (sd < 0)
       {
          perror("socket() failed");
-         break;
+         return -1;
       }
 
       memset(&serveraddr, 0, sizeof(serveraddr));
@@ -59,19 +60,22 @@ main(int argc, char * const argv[])
       if (rc < 0)
       {
          perror("bind() failed");
-         break;
+         return -1;
       }
 
       rc = listen(sd, 10);
       if (rc< 0)
       {
          perror("listen() failed");
-         break;
+         return -1;
       }
 
       printf("> Ready for client connect().\n");
 
+      message_t *msg = malloc(sizeof(message_t));
+      char      *buffer = malloc(MAX_PATH);
 
+   do {
       sd2 = accept(sd, NULL, NULL);
       if (sd2 < 0)
       {
@@ -81,36 +85,34 @@ main(int argc, char * const argv[])
 
       printf("> Connection accepted\n");
 
-
-
-      message_t *msg = malloc(sizeof(message_t));
-
       recv_message(sd2, msg);
 
-      printf("\nREQUEST\n");
-      printf("\nMESSAGE HEADER:\n");
-      printf("Code:      %s\n", msg_code_to_str(msg->header.code));
-      printf("File:      %s\n",msg->header.filename);
-      printf("Body Size: %ld\n", msg->header.msg_size);
-      printf("BODY:\n");
-      printf("%s\n\n", (char*)msg->body);
+      printf(BOLD "\n\tRESPONSE\n");
+      printf("\n\tMESSAGE HEADER:\n" RESET);
+      printf("\tCode:      %s\n", msg_code_to_str(msg->header.code));
+      printf("\tFile:      %s\n",msg->header.filename);
+      printf("\tBody Size: %ld\n", msg->header.msg_size);
+      printf(BOLD "\tBODY:\n" RESET);
+      printf("\t%s\n\n", (char*)msg->body);
+ 
 
-      char      *buffer = malloc(MAX_PATH);
-
+      memset(buffer, '0', MAX_PATH);
       strcpy(buffer, HANDSHAKE_MSG);
 
       set_message(msg, RES_SUCCESS, DEFAULT_SOCKET_PATH, strlen(buffer) + 1, buffer);
       
       send_message(sd2, msg);
       
-      free(buffer);
-      free(msg->body);
-      free(msg);
+      
+      
+      
    
 
-   } while (FALSE);
+   } while (TRUE);
 
-
+   free(buffer);
+   free(msg->body);
+   free(msg);
    if (sd != -1)
       close(sd);
 
