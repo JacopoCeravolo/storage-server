@@ -28,7 +28,10 @@ export CFLAGS
 DEBUG		= -DDEBUG=true -g
 
 # Parameter list for debugging and memchecking
-PARAMS	= -W /Users/jacopoceravolo/Development/storage-server/data/file1.txt,/Users/jacopoceravolo/Development/storage-server/data/file2.txt,/Users/jacopoceravolo/Development/storage-server/data/file3.txt,/Users/jacopoceravolo/Development/storage-server/data/file4.txt
+PARAMS	= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
+		   		-l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
+				-D trash_here/ -d read_here/
+
 # Targets
 .PHONY: client server api utils \
 		cleanall cleanutils cleanclient cleanapi \
