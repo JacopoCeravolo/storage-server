@@ -21,7 +21,7 @@ LINK_PROTOCOL 	= -Wl,-rpath,$(UTILDIR)/libs
 LINK_PROTOCOL	+= -L $(UTILDIR)/libs
 LINK_PROTOCOL	+= -lprotocol
  
-LINK_ALL	= $(LINK_PROTOCOL)
+LINK_ALL	= $(LINK_PROTOCOL) -lpthread
 
 
 

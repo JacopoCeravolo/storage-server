@@ -135,12 +135,14 @@ execute_request(option_t opt)
                 dequeue(opt.files_list, pathname);
                 if (readFile(pathname, &buffer, &size) != 0) {
                     LOG_ERROR("could not read file [%s] from server. ERROR: %s\n", pathname, strerror(errno));
+                    break;
                 } else {
                     LOG_INFO("successfully read file [%s] from server.\n", pathname);
                 }
                 if (abs_dirname != NULL) {
                     if (write_files_to_directory(abs_dirname, (char*)buffer) != 0) {
                         LOG_ERROR("could not write files in directory [%s]\n", abs_dirname);
+                        break;
                     } else {
                         LOG_INFO("successfully saved files to directory [%s]\n", abs_dirname);
                     }
@@ -166,6 +168,7 @@ execute_request(option_t opt)
                 dequeue(opt.files_list, pathname);
                 if (writeFile(pathname, abs_dirname) != 0) {
                     LOG_ERROR("could not write file [%s] to server. ERROR: %s\n", pathname, strerror(errno));
+                    break;
                 } else {
                     LOG_INFO("successfully written file [%s] to server.\n", pathname);
                 }
@@ -185,6 +188,7 @@ execute_request(option_t opt)
             if (abs_dirname != NULL && DEBUG) LOG_DEBUG("abs dir: %s\n", abs_dirname); // ugly
             if (readNFiles(opt.how_many_files, abs_dirname) != 0) {
                 LOG_ERROR("could not read %d files from server.\n", opt.how_many_files);
+                break;
             } else {
                 LOG_INFO("successfully read %d files from server.\n", opt.how_many_files);
             }
@@ -201,6 +205,7 @@ execute_request(option_t opt)
                 dequeue(opt.files_list, pathname);
                 if (lockFile(pathname) != 0) {
                     LOG_ERROR("could not lock file [%s] in server.\n", pathname);
+                    break;
                 } else {
                     LOG_INFO("successfully locked file [%s] in server.\n", pathname);
                 }
@@ -215,6 +220,7 @@ execute_request(option_t opt)
                 dequeue(opt.files_list, pathname);
                 if (unlockFile(pathname) != 0) {
                     LOG_ERROR("could not unlock file [%s] in server.\n", pathname);
+                    break;
                 } else {
                     LOG_INFO("successfully unlocked file [%s] in server.\n", pathname);
                 }
@@ -229,6 +235,7 @@ execute_request(option_t opt)
                 dequeue(opt.files_list, pathname);
                 if (removeFile(pathname) != 0) {
                     LOG_ERROR("could not remove file [%s] from server.\n", pathname);
+                    break;
                 } else {
                     LOG_INFO("successfully removed file [%s] from server.\n", pathname);
                 }

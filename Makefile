@@ -23,7 +23,7 @@ MAKEFLAGS += --no-print-directory
 export MAKEFLAGS
 
 # Compiler flags
-CFLAGS		+= -Wall -std=c99
+CFLAGS		+= -Wall -std=c99 -D_POSIX_C_SOURCE
 export CFLAGS
 DEBUG		= -DDEBUG=true -g
 

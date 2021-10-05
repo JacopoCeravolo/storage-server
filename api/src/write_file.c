@@ -59,7 +59,7 @@ writeFile(const char* pathname, const char* dirname)
     }
 
     /* Read server response */
-    LOG_DEBUG("receiving server response\n");
+    LOG_DEBUG("awaiting server response\n");
     
     if (recv_message(socket_fd, msg) != 0) {
       LOG_ERROR("recv_message(): %s\n", strerror(errno));

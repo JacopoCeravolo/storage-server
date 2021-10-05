@@ -15,7 +15,7 @@ openFile(const char* pathname, int flags)
     }
 
     /* Read server response */
-    LOG_DEBUG("receiving server response\n");
+    LOG_DEBUG("awaiting server response\n");
     
     if (recv_message(socket_fd, msg) != 0) {
       LOG_ERROR("recv_message(): %s\n", strerror(errno));
@@ -32,6 +32,5 @@ openFile(const char* pathname, int flags)
 
     free(msg->body);
     free(msg);
-    return 0;
     return 0;
 }

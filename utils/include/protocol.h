@@ -35,6 +35,7 @@ typedef enum {
     REQ_UNLOCK              = 18,
     REQ_CLOSE               = 19,
     REQ_DELETE              = 20,
+    REQ_END                 = 21,
 
 } msg_code;
 

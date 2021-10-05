@@ -10,3 +10,4 @@
 [] API: openConnection -> utilizzo struct timespec
 
 [] PROTOCOL: gestione errori read/write
+[] PROTOCOL: errore valgrind realloc in recv_message

@@ -18,6 +18,7 @@
 #include "utils/include/protocol.h"
 
 #define HANDSHAKE_MSG   "REQUESTING CONNECTION"
+#define CLOSING_MSG     "CLOSING CONNECTION"
 
 long socket_fd; 
 

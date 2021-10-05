@@ -35,13 +35,13 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
    }
 
    /* Read handshake result */
-   LOG_DEBUG("receiving server response\n");
+   LOG_DEBUG("awaiting server handshake\n");
    if (recv_message(socket_fd, msg) != 0) {
       LOG_ERROR("recv_message(): %s\n", strerror(errno));
       return -1;
    }
 
-   printf(BOLDMAGENTA "\nRESPONSE\n" RESET);
+   printf(BOLDMAGENTA "\nHANDSHAKE\n" RESET);
    printf(BOLD "\nMESSAGE HEADER:\n" RESET);
    printf("Code:      %s\n", msg_code_to_str(msg->header.code));
    printf("File:      %s\n",msg->header.filename);
