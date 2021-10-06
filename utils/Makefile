@@ -4,17 +4,26 @@ LD			= gcc
 RM			= rm -rf
 
 # Directories
+ifndef ORIGIN
+ORIGIN		= $(realpath ../)
+endif
 SRCDIR		= src
-INCDIR		= include
 OBJDIR		= obj
-LIBDIR 		= libs
+INCDIR		= include
+ifndef UTIL_LIBS
+UTIL_LIBS		= libs
+endif
 
 # Library targets
-QUEUE 		= $(LIBDIR)/libqueue.so
-PROTOCOL 	= $(LIBDIR)/libprotocol.so
+QUEUE 		= $(UTIL_LIBS)/libqueue.so
+PROTOCOL 	= $(UTIL_LIBS)/libprotocol.so
 
 # Flags
+ifndef INCLUDES
 INCLUDES	= -I$(INCDIR)
+else 
+INCLUDES 	+= -I$(INCDIR)
+endif
 
 # Compiler Flags
 ALL_CFLAGS		:= $(CFLAGS)
@@ -38,7 +47,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $@ $<
 
 # General rule for libraries
-$(LIBDIR)/%.so: $(OBJ)
+$(LIBDIR)/%.so: $(OBJDIR)%.o
 	$(RM) $@
 	$(CC) -shared -o $@ $<
 

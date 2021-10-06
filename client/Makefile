@@ -4,28 +4,50 @@ LD			= gcc
 RM			= rm -rf
 
 # Directories
+ifndef ORIGIN
+ORIGIN		= $(realpath ../)
+endif
+
+ifndef UTILS
+UTILS 		= $(ORIGIN)/utils
+endif
+
+ifndef API	
+API			= $(ORIGIN)/api
+endif
+
+ifndef UTIL_LIBS
+UTIL_LIBS	:= $(UTILS)/libs
+endif
+
+ifndef API_LIBS
+API_LIBS	:= $(API)/libs
+endif
+
+ifndef INCDIR
+INCDIR		= $(ORIGIN)
+endif
+
 SRCDIR		= src
 OBJDIR		= obj
 BINDIR		= bin
-INCDIR		= $(ORIGIN)
-APIDIR 		= $(ORIGIN)/api
-UTILDIR		= $(ORIGIN)/utils
+# APIDIR		= $(ORIGIN)/api # to be changed
 
 # Targets
 TARGET		= client 
 
 # Library targets
-QUEUE 		= $(UTILDIR)/libs/libqueue.so
-API 		= $(APIDIR)/libs/libfilestorage_api.so
-PROTOCOL	= $(UTILDIR)/libs/libprotocol.so
+QUEUE 		= $(UTIL_LIBS)/libqueue.so
+PROTOCOL	= $(UTIL_LIBS)/libprotocol.so
+API 		= $(API_LIBS)/libfilestorage_api.so
 
 # Linking
-LINK_API 	= -Wl,-rpath,$(APIDIR)/libs
-LINK_API	+= -L $(APIDIR)/libs
+LINK_API 	= -Wl,-rpath,$(API_LIBS)
+LINK_API	+= -L $(API_LIBS)
 LINK_API	+= -lfilestorage_api
 
-LINK_UTILS 	= -Wl,-rpath,$(UTILDIR)/libs
-LINK_UTILS	+= -L $(UTILDIR)/libs
+LINK_UTILS 	= -Wl,-rpath,$(UTIL_LIBS)
+LINK_UTILS	+= -L $(UTIL_LIBS)
 LINK_UTILS	+= -lqueue
 LINK_UTILS  += -lprotocol
 
@@ -34,8 +56,13 @@ LINK_ALL	= $(LINK_API)
 LINK_ALL	+= $(LINK_UTILS)
 
 # Flags
+ifndef INCLUDES
 INCLUDES	= -I$(INCDIR)
+endif
+
+ifndef DEBUG
 DEBUG		= -DDEBUG=true -g
+endif
 
 
 # Compiler Flags
@@ -50,7 +77,7 @@ ALL_CFLAGS		+= -Wformat -Wno-format-zero-length -Wstrict-prototypes
 ALL_CFLAGS		+= -Wno-unknown-warning-option
 
 # Parameter list for debugging and memchecking
-PARAMS	:= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
+PARAMS	= -R 10 -W file1,file2,file3,file4 -r file1,file2,file3,file4 \
 		   -l lock1,lock2 -u ulock2,ulock3 -c clean1,clean2 -t 10 -p \
 		   -f ./tmp/filestorage.sk -D trash_here/ -d read_here/
 

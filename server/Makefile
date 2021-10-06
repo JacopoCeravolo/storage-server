@@ -4,21 +4,35 @@ LD			= gcc
 RM			= rm -rf
 
 # Directories
+ifndef ORIGIN
+ORIGIN		= $(realpath ../)
+endif
+
+ifndef UTILS
+UTILS 		= $(ORIGIN)/utils
+endif
+
+ifndef UTIL_LIBS
+UTIL_LIBS	:= $(UTILS)/libs
+endif
+
+ifndef INCDIR
+INCDIR		= $(ORIGIN)
+endif
+
 SRCDIR		= src
 OBJDIR		= obj
 BINDIR		= bin
-INCDIR		= $(ORIGIN)
-UTILDIR		= $(ORIGIN)/utils
 
 # Targets
 TARGET		= server 
 
 # Library targets
-QUEUE 		= $(UTILDIR)/libs/libqueue.so
-PROTOCOL	= $(UTILDIR)/libs/libprotocol.so
+QUEUE 		= $(UTIL_LIBS)/libqueue.so
+PROTOCOL	= $(UTIL_LIBS)/libprotocol.so
 
-LINK_PROTOCOL 	= -Wl,-rpath,$(UTILDIR)/libs
-LINK_PROTOCOL	+= -L $(UTILDIR)/libs
+LINK_PROTOCOL 	= -Wl,-rpath,$(UTIL_LIBS)
+LINK_PROTOCOL	+= -L $(UTIL_LIBS)
 LINK_PROTOCOL	+= -lprotocol
  
 LINK_ALL	= $(LINK_PROTOCOL) -lpthread
@@ -26,8 +40,12 @@ LINK_ALL	= $(LINK_PROTOCOL) -lpthread
 
 
 # Flags
+ifndef DEBUG
 DEBUG		= -DDEBUG=true -g
+endif
+ifndef INCLUDES
 INCLUDES	= -I$(INCDIR)
+endif
 
 
 # Compiler Flags
@@ -81,4 +99,4 @@ clean:
 	$(RM) $(OBJ) $(DEP)
 
 cleanall:
-	$(RM) $(OBJ) $(DEP) $(BIN)
+	$(RM) $(OBJ) $(DEP) $(BIN) 

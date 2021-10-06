@@ -11,3 +11,6 @@
 
 [] PROTOCOL: gestione errori read/write
 [] PROTOCOL: errore valgrind realloc in recv_message
+
+[] SERVER: struttura ad albero per directory
+[] SERVER: sottostruttura hashtable per file

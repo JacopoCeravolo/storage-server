@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "server/include/storage.h"
+
+#include "utils/include/logger.h"
+
+storage_t*
+create_storage(int max_capacity, int max_no_files)
+{
+    storage_t *storage = malloc(sizeof(storage_t));
+    if (storage == NULL) {
+        return NULL;
+    }
+    storage->max_capacity = max_capacity;
+    storage->curr_capacity = 0;
+
+    storage->max_no_files  = max_no_files;
+    storage->curr_no_files = 0;
+
+    storage->files = icl_hash_create(max_no_files, hash_pjw, string_compare);
+    if (storage->files == NULL) {
+        return NULL;
+    }
+     
+    return storage;
+}
+
+// TODO: destroy_storage
+
+int
+write_file(storage_t *storage, char *pathname, size_t size, void* contents)
+{
+    if (storage == NULL) {
+        LOG_ERROR("storage should be initialized\n");
+        return -1;
+    }
+    LOG_DEBUG("in write\n");
+    file_t *file = malloc(sizeof(file_t));
+    if (file == NULL) return -1;
+
+    file->size = size;
+    file->contents = contents;
+
+    if (storage->files == NULL) {
+        LOG_ERROR("storage files table should be initialized\n");
+        return -1;
+    }
+    icl_entry_t *file_entry;
+    file_entry = icl_hash_insert(storage->files, pathname, file);
+    if (file_entry == NULL) {
+        LOG_ERROR("could not add entry to file table\n");
+        return -1;
+    }
+    
+    storage->curr_no_files++;
+    storage->curr_capacity -= size;
+    return 0;
+}
+
+void*
+read_file(storage_t *storage, char *pathname) 
+{
+    file_t *file = malloc(sizeof(file_t));
+    if (file == NULL) return NULL;
+
+    file = (file_t*)icl_hash_find(storage->files, pathname);
+
+    return file->contents;
+}

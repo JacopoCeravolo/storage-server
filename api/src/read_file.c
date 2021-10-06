@@ -31,7 +31,6 @@ readFile(const char* pathname, void** buf, size_t* size)
     *size = msg->header.msg_size;
     buf = &msg->body;
 
-    printf("BUF:\n%s\n", (char*)*buf);
     free(msg->body);
     free(msg);
 

@@ -2,53 +2,82 @@
 ORIGIN 	= $(realpath ./)
 export ORIGIN
 
+# Project sub-modules
+CLIENT 	= $(ORIGIN)/client
+export CLIENT
+
+API		= $(ORIGIN)/api
+export API
+
+SERVER 	= $(ORIGIN)/server
+export SERVER
+
+UTILS 	= $(ORIGIN)/utils
+export UTILS
+
+UTIL_LIBS 	= $(UTILS)/libs
+export UTIL_LIBS
+
+API_LIBS	=$(API)/libs
+export API_LIBS
+
 # Printing
 RED		= \033[1m\033[31m
 GREEN	= \033[1m\033[32m
 BOLD	= \033[1m
 RESET	= \033[0m
 
-# Project sub-modules
-CLIENT_DIR 	= client
-API_DIR		= api
-SERVER_DIR 	= server
-UTILS_DIR 	= utils
-
 # Executables
-CLIENT		= $(CLIENT_DIR)/bin/client
-SERVER		= $(SERVER_DIR)/bin/server
+CLIENT_EXE		= $(CLIENT)/bin/client
+SERVER_EXE		= $(SERVER)/bin/server
 
 # Make flags
 MAKEFLAGS += --no-print-directory
 export MAKEFLAGS
 
 # Compiler flags
-CFLAGS		+= -Wall -std=c99 -D_POSIX_C_SOURCE
+CFLAGS		+= -Wall -std=c99 -D_POSIX_C_SOURCE 
 export CFLAGS
+
+INCLUDES	= -I$(ORIGIN)
+export INCLUDES
+
 DEBUG		= -DDEBUG=true -g
 
 # Parameter list for debugging and memchecking
-PARAMS	= -W /Users/jacopoceravolo/Development/storage-server/data/file1.txt,/Users/jacopoceravolo/Development/storage-server/data/file2.txt,/Users/jacopoceravolo/Development/storage-server/data/file3.txt,/Users/jacopoceravolo/Development/storage-server/data/file4.txt
+CLIENT_PARAMS	= -R 5
+
 # Targets
-.PHONY: client server api utils \
-		cleanall cleanutils cleanclient cleanapi \
-		run_server run_client \
-		memcheck debug
+.PHONY: all	cleanall m\
+		client cleanclient 	\
+		server cleanserver 	\
+		api cleanapi 		\
+		utils cleanutils	\
+		run_client			\
+		run_server			\
+		client_memcheck		\
+		server_memcheck		\
+		debug				\
+		test cleantest	    \
+		
 .DEFAULT_GOAL := all
 
-# Rules
+# ******** Rules ********
+
+# Compilation
 client:
-	$(MAKE) -C client
+	$(MAKE) -C $(CLIENT)
 
 server:
-	$(MAKE) -C server
+	$(MAKE) -C $(SERVER)
 
 api:
-	$(MAKE) -C api
+	$(MAKE) -C $(API)
 
 utils:
-	$(MAKE) -C utils
+	$(MAKE) -C $(UTILS)
 
+# Default Goal
 all:
 	@echo "${BOLD}Building application... ${RESET}"
 	@echo "${BOLD}Building utilities... ${RESET}"
@@ -64,28 +93,31 @@ all:
 	@make server
 	@echo "${GREEN}Server built ${RESET}"
 
+
+# Execution
+run_client:	
+	$(CLIENT_EXE) $(CLIENT_PARAMS)
+
+run_server:
+	$(SERVER_EXE)
+
+# Debugging, testing and memory checking
 debug: CFLAGS += $(DEBUG)
 debug: 
 	@make all
 
-run_server:
-	./$(SERVER)
-
-run_client:
-	./$(CLIENT) $(PARAMS)
+test: 
+	@make cleanall debug
+	@cp $(CLIENT_EXE) test/
+	@cp $(SERVER_EXE) test/
 
 client_memcheck:
-	@valgrind -v --track-origins=yes --leak-check=full ./$(CLIENT) $(PARAMS)
+	@valgrind -v --track-origins=yes --leak-check=full $(CLIENT_EXE) $(CLIENT_PARAMS)
+
 server_memcheck:
-	@valgrind -v --track-origins=yes --leak-check=full ./$(SERVER)
-cleanutils:
-	@cd utils && make cleanall
-	@echo "${GREEN}Utilites removed ${RESET}"
+	@valgrind -v --track-origins=yes --leak-check=full $(SERVER_EXE)
 
-cleanapi:
-	@cd api && make cleanall
-	@echo "${GREEN}API removed ${RESET}"
-
+# Cleaning
 cleanclient:
 	@cd client && make cleanall
 	@echo "${GREEN}Client removed ${RESET}"
@@ -94,8 +126,21 @@ cleanserver:
 	@cd server && make cleanall
 	@echo "${GREEN}Server removed ${RESET}"
 
+cleanapi:
+	@cd api && make cleanall
+	@echo "${GREEN}API removed ${RESET}"
+
+cleanutils:
+	@cd utils && make cleanall
+	@echo "${GREEN}Utilites removed ${RESET}"
+
+cleantest:
+	@cd test && rm -rf client server
+	@echo "${GREEN}Test directory cleaned ${RESET}"
+
 cleanall:
 	@echo "${BOLD}Cleaning up... ${RESET}"
+	@make cleantest
 	@make cleanutils
 	@make cleanapi
 	@make cleanclient
