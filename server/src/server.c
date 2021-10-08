@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #include "utils/include/logger.h"
 #include "utils/include/utilities.h"
@@ -18,13 +19,13 @@
 
 #include "server/include/storage.h"
 #include "server/include/server_config.h"
-// #include "server/include/threadpool.h"
 #include "server/include/worker.h"
 
 void
 cleanup()
 {
    unlink(DEFAULT_SOCKET_PATH);
+
 }
 
 storage_t *storage = NULL;
@@ -33,17 +34,20 @@ int
 main(int argc, char * const argv[])
 {
    atexit(cleanup);
+   signal(SIGPIPE, SIG_IGN);
+
+   /* Initilize storage */
+
+   /* if ((storage = create_storage(4096, 100)) == NULL) {
+      LOG_FATAL("could not create storage, exiting..\n");
+      return -1;
+   } */
+   
+   /* Opening the socket */
 
    int    socket_fd=-1;
    int    rc;
    struct sockaddr_un serveraddr;
-
-   if ((storage = create_storage(4096, 100)) == NULL) {
-      LOG_FATAL("could not create storage, exiting..\n");
-      return -1;
-   }
-   
-   /* Opening the socket */
 
    unlink(DEFAULT_SOCKET_PATH);
 
@@ -69,17 +73,36 @@ main(int argc, char * const argv[])
       return -1;
    }
 
-   LOG_INFO("Server is now ready to accept connections.\n");
+   /* Sets pipes and FD_SET */
+
+   int    mw_pipe[2];   // master-worker pipe
+   fd_set set;          // set of opened file descriptors
+   fd_set rdset;        // set of descriptors ready on read
+
+
+   FD_ZERO(&set);
+   FD_ZERO(&rdset);
+
+   if (pipe(mw_pipe) != 0) {
+      perror("pipe()");
+      return -1;
+   }
+   /* fcntl(mw_pipe[0], F_SETNOSIGPIPE);
+   fcntl(mw_pipe[1], F_SETNOSIGPIPE); */
+
+   // signal(SIGPIPE, SIG_IGN);
    
-   /* pool_t *pool = create_pool(5, 50);
-   if (pool == NULL) {
-       LOG_INFO("could not create pool\n");
-       return (void*)-1;
-   } */
-   
+   FD_SET(socket_fd, &set);
+   FD_SET(mw_pipe[0], &set);
+
+   int fd_max = 0;
+   if (socket_fd > fd_max) fd_max = socket_fd;
+   if (mw_pipe[0] > fd_max) fd_max = mw_pipe[0];
+   /* Initialize bounded queue and starts threads */
+
    lqueue_t *requests = malloc(sizeof(lqueue_t));
 
-   requests->queue = createQueue(sizeof(long));
+   requests->queue = createQueue(sizeof(int));
    requests->queue_size = 0;
    // Mutex and conidition var initialization
    if ((pthread_mutex_init(&(requests->lock), NULL) != 0) ||
@@ -94,103 +117,85 @@ main(int argc, char * const argv[])
 
    pthread_t *workers = malloc(sizeof(pthread_t) * 5);
    for (int i = 0; i < 5; i++) {
-      worker_arg_t *worker_args = malloc(sizeof(worker_args));
-      worker_args->exit = 0;
-      worker_args->worker_id = i;
-      worker_args->requests = requests;
-      if (pthread_create(&workers[i], NULL, worker_thread, (void*)worker_args) != 0) {
+      worker_arg_t worker_args;
+      worker_args.exit = 0;
+      worker_args.worker_id = i;
+      worker_args.pipe_fd = mw_pipe[1];
+      worker_args.requests = requests;
+      if (pthread_create(&workers[i], NULL, worker_thread, (void*)&worker_args) != 0) {
          LOG_FATAL("could not create thread\n");
          exit(EXIT_FAILURE);
       }
+      
    }
 
    /* Starts accepting requests */
 
-   fd_set set;  // insieme fd
-   fd_set tmpset;
-   FD_ZERO(&set);
-   FD_ZERO(&tmpset);
-   FD_SET(socket_fd, &set);
-   
-   int fdmax = (socket_fd > 0) ? socket_fd : 0;
+   LOG_INFO("Server is now ready to accept connections.\n");
 
-   
    while (1) {
-      tmpset = set;
-	   if (select(fdmax+1, &tmpset, NULL, NULL, NULL) == -1) {
+      rdset = set;
+	   if (select(fd_max+1, &rdset, NULL, NULL, NULL) == -1) {
 	       perror("select");
 	       exit(-1);
 	   }
-      for(int i=0; i <= fdmax; i++) {
-
-         if (FD_ISSET(i, &tmpset)) {
-
-            long client_fd;
-		      if (i == socket_fd && FD_ISSET(socket_fd, &set)) { // new client
+      
+      for(int fd = 0; fd <= fd_max; fd++) {
+         // printf("Examining fd: %d\n", fd);
+         if (FD_ISSET(fd, &rdset) && (fd != mw_pipe[0])) {
+            // printf("fd %d is set ", fd);
+            int client_fd;
+		      if (fd == socket_fd && FD_ISSET(socket_fd, &set)) { // new client
+               // printf("and its new socket connection\n");
                client_fd = accept(socket_fd, (struct sockaddr*)NULL, NULL);
                if (client_fd < 0) {
                   perror("accept() failed");
                   return -1;
                }
-               LOG_INFO(BOLD "[MASTER] " RESET "new connection from client\n");
+               // LOG_INFO(BOLD "[MASTER] " RESET "new connection from client with fd %d\n", client_fd);
+               // printf("adding fd %d (new client) to set\n", client_fd);
                FD_SET(client_fd, &set);
-               if (client_fd > fdmax) fdmax = client_fd;
+               if (client_fd > fd_max) fd_max = client_fd;
+
             } else { // new request from already connected client
-               // LOG_INFO(BOLD "[MASTER] " RESET "new request\n");
-               
+               //LOG_INFO(BOLD "[MASTER] " RESET "new request from client with fd %d\n", fd);
+               // printf("and its a new request from already connected client\n");
                LOCK_RETURN(&(requests->lock), -1);
                // LOG_INFO(BOLD "[MASTER] " RESET "enqueuing request\n");
-               enqueue(requests->queue, (void*)&i);
+               // printf("fd %d added to queue\n", fd);
+               enqueue(requests->queue, (void*)&fd);
                requests->queue_size++;
 
+               FD_CLR(fd, &set);
+               // printf("fd %d removed from set\n", fd);
+               if (fd == fd_max) {
+                  fd_max--;
+               }
                pthread_cond_signal(&(requests->notify));
                
                UNLOCK_RETURN(&(requests->lock),-1);
             }
          }
+         if (FD_ISSET(fd, &rdset) && FD_ISSET(mw_pipe[0], &rdset)){
+			   // printf("fd is set and is the mw_pipe\n");
+            int new_fd;
+            // printf("reading from pipe\n");
+			   if( (read(mw_pipe[0], &new_fd, sizeof(int))) == -1 ){
+			   	perror("read_pipe");
+			   	return -1;
+			   }
+			   else{
+               // printf("read successfull\n");
+			   	if( new_fd != -1 ){ // reinserisco il fd tra quelli da ascoltare
+                  // printf("added fd %d back to the set\n", new_fd);
+			   		FD_SET(new_fd, &set);
+			         if( new_fd > fd_max ) fd_max = new_fd;
+			   	}
+			   }
+		   }
+         // printf("No news on fd %d\n", fd);
       }
-      /* pthread_t   master_id;
-      pthread_create(&master_id, NULL, master_thread, (void*)socket_fd);
-      pthread_join(master_id, NULL); */
    }
-
-/*    while (!termina)
-   {
-      conn_fd = accept(socket_fd, (struct sockaddr*)NULL, NULL);
-      if (conn_fd < 0) {
-         perror("accept() failed");
-         return -1;
-      }
-      LOG_INFO("New connection\n");
-      
-      dispatcher_arg_t *dispatcher_arg = malloc(sizeof(dispatcher_arg_t));
-      dispatcher_arg->client_fd = conn_fd;
-      dispatcher_arg->termina = (long)&termina; */
-      
-      
-      /* message_t *msg = malloc(sizeof(message_t));
-      set_message(msg, RES_UNKNOWN, "", 0, NULL);
-
-      LOG_INFO("awaiting new request from client\n");
-      if (recv_message(conn_fd, msg) != 0) {
-         LOG_ERROR("recv_message(): %s\n", strerror(errno));
-         return -1;
-      }
-
-
-      printf(BOLDMAGENTA "\nREQUEST\n" RESET);
-      printf(BOLD "\nHEADER:\n" RESET);
-      printf("Code:      %s\n", msg_code_to_str(msg->header.code));
-      printf("File:      %s\n",msg->header.filename);
-      printf("Body Size: %ld\n", msg->header.msg_size);
-      printf(BOLD "BODY:\n" RESET);
-      (msg->header.code == REQ_READ_N) ? printf("%d\n\n", *(int*)msg->body) : 
-                                         printf("%s\n\n", (char*)msg->body);
-
-      
-      free(msg->body);
-      free(msg); */
-   
 
    if (socket_fd != -1) close(socket_fd);
    return 0;

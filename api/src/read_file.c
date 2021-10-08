@@ -19,13 +19,13 @@ readFile(const char* pathname, void** buf, size_t* size)
       return -1;
     }
 
-    printf(BOLDMAGENTA "\nRESPONSE\n" RESET);
+    /* printf(BOLDMAGENTA "\nRESPONSE\n" RESET);
     printf(BOLD "\nMESSAGE HEADER:\n" RESET);
     printf("Code:      %s\n", msg_code_to_str(message->header.code));
     printf("File:      %s\n",message->header.filename);
     printf("Body Size: %ld\n", message->header.msg_size);
     printf(BOLD "BODY:\n" RESET);
-    printf("%s\n\n", (char*)message->body);
+    printf("%s\n\n", (char*)message->body); */
 
     // TODO check response, if success copy in buffer
     *size = message->header.msg_size;

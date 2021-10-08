@@ -15,6 +15,7 @@ typedef struct _lqueue_t {
 typedef struct _worker_arg_t {
 
     int         worker_id;
+    int         pipe_fd;
     lqueue_t    *requests;
     int         exit;
 

@@ -37,15 +37,12 @@ send_message(int conn_fd, message_t *msg)
     /* Writes header */
 
     if (write(conn_fd, &msg->header.code, sizeof(msg_code)) != sizeof(msg_code)) {
-        printf("when writing message code\n");
         return -1;
     }
     if (write(conn_fd, msg->header.filename, MAX_PATH) != MAX_PATH) {
-        printf("when writing message filename\n");
         return -1;
     }
     if (write(conn_fd, &msg->header.msg_size, sizeof(size_t)) != sizeof(size_t)) {
-        printf("when writing message size\n");
         return -1;
     }
 
@@ -53,7 +50,6 @@ send_message(int conn_fd, message_t *msg)
 
     // Change to while loop to check number of bytes 
     if (write(conn_fd, msg->body, msg->header.msg_size) != msg->header.msg_size) {
-        printf("when writing message body\n");
         return -1;
     }
     // printf("writing %s\n", msg->body);
@@ -68,19 +64,16 @@ recv_message(int conn_fd)
 
     if ((res = read(conn_fd, &msg->header.code, sizeof(msg_code))) != sizeof(msg_code)) {
         if (res == -1) {
-            printf("when reading message code\n");
             return NULL;
         }
     }
     if ((res = read(conn_fd, msg->header.filename, MAX_PATH)) != MAX_PATH) {
         if (res == -1) {
-            printf("when reading message filename\n");
             return NULL;
         }
     }
     if ((res = read(conn_fd, &msg->header.msg_size, sizeof(size_t))) != sizeof(size_t)) {
         if (res == -1) {
-            printf("when reading message size\n");
             return NULL;
         }
     }
@@ -88,7 +81,6 @@ recv_message(int conn_fd)
     msg->body = malloc(msg->header.msg_size);
     if ((res = read(conn_fd, msg->body, msg->header.msg_size)) != msg->header.msg_size) {
         if (res == -1) {
-            printf("when reading message body\n");
             return NULL;
         }
     }

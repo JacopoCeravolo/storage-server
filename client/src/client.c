@@ -93,7 +93,7 @@ main(int argc, char * const argv[])
     while (!isEmpty(option_list)) {
         dequeue(option_list, &opt);
         execute_request(opt);
-        sleep(1);
+        sleep(2);
     }
 
     if (closeConnection(config->socket_name) != 0) {

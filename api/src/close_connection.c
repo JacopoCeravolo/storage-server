@@ -16,6 +16,13 @@ closeConnection(const char* sockname)
         return -1;
     }
 
+    LOG_DEBUG("awaiting server response\n");
+
+    if ((message = recv_message(socket_fd)) == NULL) {
+      LOG_ERROR("recv_message(): %s\n", strerror(errno));
+      return -1;
+    }
+    
     free(buffer);
     free(message->body);
     free(message);
