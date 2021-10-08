@@ -4,6 +4,7 @@
 #include "server/include/storage.h"
 
 #include "utils/include/logger.h"
+#include "utils/include/utilities.h"
 
 storage_t*
 create_storage(int max_capacity, int max_no_files)
@@ -35,7 +36,7 @@ write_file(storage_t *storage, char *pathname, size_t size, void* contents)
         LOG_ERROR("storage should be initialized\n");
         return -1;
     }
-    LOG_DEBUG("in write\n");
+    
     file_t *file = malloc(sizeof(file_t));
     if (file == NULL) return -1;
 
@@ -62,9 +63,11 @@ void*
 read_file(storage_t *storage, char *pathname) 
 {
     file_t *file = malloc(sizeof(file_t));
+    file->contents = malloc(MAX_BUFFER);
     if (file == NULL) return NULL;
 
     file = (file_t*)icl_hash_find(storage->files, pathname);
-
+    LOG_DEBUG("found successfull\n");
+    LOG_INFO("%s\n", (char*)file->contents);
     return file->contents;
 }

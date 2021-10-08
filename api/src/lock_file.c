@@ -10,11 +10,11 @@ lockFile(const char* pathname)
 
     /* Requesting lock of file */
     LOG_DEBUG("requesting lock of file [%s]\n", pathname);
-    message_t *msg = malloc(sizeof(message_t));
+    message_t *message;
 
-    set_message(msg, REQ_LOCK, pathname, strlen(pathname) + 1, (char*)pathname);
+    message = set_message(REQ_LOCK, pathname, strlen(pathname) + 1, (char*)pathname);
 
-    if (send_message(socket_fd, msg) != 0) {
+    if (send_message(socket_fd, message) != 0) {
       LOG_ERROR("send_message(): %s\n", strerror(errno));
       return -1;
     }
@@ -22,20 +22,20 @@ lockFile(const char* pathname)
     /* Read server response */
     LOG_DEBUG("awaiting server response\n");
     
-    if (recv_message(socket_fd, msg) != 0) {
+    if ((message = recv_message(socket_fd)) == NULL) {
       LOG_ERROR("recv_message(): %s\n", strerror(errno));
       return -1;
     }
     
     printf(BOLDMAGENTA "\nRESPONSE\n" RESET);
     printf(BOLD "\nMESSAGE HEADER:\n" RESET);
-    printf("Code:      %s\n", msg_code_to_str(msg->header.code));
-    printf("File:      %s\n",msg->header.filename);
-    printf("Body Size: %ld\n", msg->header.msg_size);
+    printf("Code:      %s\n", msg_code_to_str(message->header.code));
+    printf("File:      %s\n",message->header.filename);
+    printf("Body Size: %ld\n", message->header.msg_size);
     printf(BOLD "BODY:\n" RESET);
-    printf("%s\n\n", (char*)msg->body);
+    printf("%s\n\n", (char*)message->body);
 
-    free(msg->body);
-    free(msg);
+    free(message->body);
+    free(message);
     return 0;
 }

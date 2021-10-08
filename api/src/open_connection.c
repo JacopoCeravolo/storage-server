@@ -22,37 +22,38 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
 
    /* Send handsake message to server */
 
-   message_t *msg = malloc(sizeof(message_t));
+   message_t *handshake;
    char      *buffer = malloc(MAX_PATH);
    strcpy(buffer, HANDSHAKE_MSG);
 
-   set_message(msg, REQ_WELCOME, sockname, strlen(buffer) + 1, buffer);
+   handshake = set_message(REQ_WELCOME, sockname, strlen(buffer) + 1, (void*)buffer);
    
    LOG_DEBUG("sending handshake message\n");
-   if (send_message(socket_fd, msg) != 0) {
+   if (send_message(socket_fd, handshake) != 0) {
       LOG_ERROR("send_message(): %s\n", strerror(errno));
       return -1;
    }
 
    /* Read handshake result */
+
    LOG_DEBUG("awaiting server handshake\n");
-   if (recv_message(socket_fd, msg) != 0) {
+   if ((handshake = recv_message(socket_fd)) == NULL) {
       LOG_ERROR("recv_message(): %s\n", strerror(errno));
       return -1;
    }
 
    printf(BOLDMAGENTA "\nHANDSHAKE\n" RESET);
    printf(BOLD "\nMESSAGE HEADER:\n" RESET);
-   printf("Code:      %s\n", msg_code_to_str(msg->header.code));
-   printf("File:      %s\n",msg->header.filename);
-   printf("Body Size: %ld\n", msg->header.msg_size);
+   printf("Code:      %s\n", msg_code_to_str(handshake->header.code));
+   printf("File:      %s\n",handshake->header.filename);
+   printf("Body Size: %ld\n", handshake->header.msg_size);
    printf(BOLD "BODY:\n" RESET);
-   printf("%s\n\n", (char*)msg->body);
+   printf("%s\n\n", (char*)handshake->body);
     
    /* Cleanup */
    
    free(buffer);
-   free(msg->body);
-   free(msg);
+   free(handshake->body);
+   free(handshake);
    return 0;
 }

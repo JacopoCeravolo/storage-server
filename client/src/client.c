@@ -85,6 +85,7 @@ main(int argc, char * const argv[])
         free(config);
         return -1;
     }
+    sleep(1);
 
     LOG_INFO("Connection enstablished\n");
     // LOG_INFO(BOLD "PARSED OPTIONS\n" RESET);
@@ -92,6 +93,7 @@ main(int argc, char * const argv[])
     while (!isEmpty(option_list)) {
         dequeue(option_list, &opt);
         execute_request(opt);
+        sleep(1);
     }
 
     if (closeConnection(config->socket_name) != 0) {
@@ -100,6 +102,7 @@ main(int argc, char * const argv[])
         free(config);
         return -1;
     }
+    sleep(1);
 
     LOG_INFO("Connection closed\n");
     LOG_INFO("Cleaning up..\n");

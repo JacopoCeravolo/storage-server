@@ -35,7 +35,7 @@ LINK_PROTOCOL 	= -Wl,-rpath,$(UTIL_LIBS)
 LINK_PROTOCOL	+= -L $(UTIL_LIBS)
 LINK_PROTOCOL	+= -lprotocol
  
-LINK_ALL	= $(LINK_PROTOCOL) -lpthread
+LINK_ALL	= $(LINK_PROTOCOL) -lqueue -lpthread
 
 
 

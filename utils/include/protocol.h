@@ -2,9 +2,7 @@
 #define PROTOCOL_H
 
 #include <stddef.h>
-
-#include "utilities.h"
-
+#include "utils/include/utilities.h"
 typedef enum {
     
     /* SERVER --> CLIENT */
@@ -53,14 +51,14 @@ typedef struct _message_t {
 void
 set_header(header_t *header, msg_code code, const char *filename, size_t msg_sz);
 
-void
-set_message(message_t *msg, msg_code code, const char *filename, size_t size, void* body);
+message_t*
+set_message(msg_code code, const char *filename, size_t size, void* body);
 
 int
 send_message(int conn_fd, message_t *msg);
 
-int
-recv_message(int conn_fd, message_t *msg);
+message_t*
+recv_message(int conn_fd);
 
 const char*
 msg_code_to_str(msg_code code);

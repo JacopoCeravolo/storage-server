@@ -1,3 +1,6 @@
+#ifndef STORAGE_H
+#define STORAGE_H
+
 #include "server/include/icl_hash.h"
 
 typedef struct _file_t {
@@ -25,3 +28,5 @@ write_file(storage_t *storage, char *pathname, size_t size, void* contents);
 
 void*
 read_file(storage_t *storage, char *pathname);
+
+#endif
