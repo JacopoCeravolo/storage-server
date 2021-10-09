@@ -29,4 +29,7 @@ write_file(storage_t *storage, char *pathname, size_t size, void* contents);
 void*
 read_file(storage_t *storage, char *pathname);
 
+int
+storage_dump(storage_t *storage, FILE* stream);
+
 #endif

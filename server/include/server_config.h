@@ -2,6 +2,11 @@
 #define SERVER_CONFIGH_H
 
 #include "server/include/storage.h"
+#include "utils/include/logger.h"
+
+#define DISPATCHER  BOLD "[DISPATCHER] " RESET
+#define WORKER      BOLD "[WORKER %d] " RESET
+#define CLIENT      BOLDMAGENTA "client %d " RESET
 
 #define HANDSHAKE_MSG   "CONNECTION ACCEPTED"
 

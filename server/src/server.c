@@ -28,20 +28,35 @@ cleanup()
 
 }
 
+int termina = 0;
 storage_t *storage = NULL;
+FILE *logfile;
+
+void int_handler(int dummy) {
+   printf("\nHandling SIGNIT exit\n");
+   if (storage_dump(storage, logfile) != 0) {
+      LOG_ERROR("could not write to logfile\n");
+   }
+   exit(0);
+}
 
 int 
 main(int argc, char * const argv[])
 {
    atexit(cleanup);
    signal(SIGPIPE, SIG_IGN);
+   signal(SIGINT, int_handler);
+
+   /* Open logfile */
+   logfile = fopen("logs/server-log.txt", "w+");
 
    /* Initilize storage */
 
-   /* if ((storage = create_storage(4096, 100)) == NULL) {
+   if ((storage = create_storage(4096, 100)) == NULL) {
       LOG_FATAL("could not create storage, exiting..\n");
       return -1;
-   } */
+   }
+   LOG_INFO(DISPATCHER "storage initialized\n");
    
    /* Opening the socket */
 
@@ -73,6 +88,8 @@ main(int argc, char * const argv[])
       return -1;
    }
 
+   LOG_INFO(DISPATCHER "socket ready\n");
+
    /* Sets pipes and FD_SET */
 
    int    mw_pipe[2];   // master-worker pipe
@@ -100,6 +117,8 @@ main(int argc, char * const argv[])
    if (mw_pipe[0] > fd_max) fd_max = mw_pipe[0];
    /* Initialize bounded queue and starts threads */
 
+   LOG_INFO(DISPATCHER "pipe and file descriptors ready\n");
+
    lqueue_t *requests = malloc(sizeof(lqueue_t));
 
    requests->queue = createQueue(sizeof(int));
@@ -111,31 +130,29 @@ main(int argc, char * const argv[])
       free(requests);
 	   return -1;
    }
-   
-   LOG_INFO(BOLD "[MASTER] " RESET "queue created\n");
-   LOG_INFO(BOLD "[MASTER] " RESET "starting threads\n");
+
+   LOG_INFO(DISPATCHER "starting threads\n");
 
    pthread_t *workers = malloc(sizeof(pthread_t) * 5);
-   for (int i = 0; i < 5; i++) {
-      worker_arg_t worker_args;
-      worker_args.exit = 0;
-      worker_args.worker_id = i;
-      worker_args.pipe_fd = mw_pipe[1];
-      worker_args.requests = requests;
-      if (pthread_create(&workers[i], NULL, worker_thread, (void*)&worker_args) != 0) {
+
+   for (int id = 0; id < 5; id++) {
+      worker_arg_t *worker_args = malloc(sizeof(worker_arg_t));
+      worker_args->exit = 0;
+      worker_args->worker_id = id;
+      worker_args->pipe_fd = mw_pipe[1];
+      worker_args->requests = requests;
+      if (pthread_create(&workers[id], NULL, worker_thread, (void*)worker_args) != 0) {
          LOG_FATAL("could not create thread\n");
          exit(EXIT_FAILURE);
       }
-      
    }
 
    /* Starts accepting requests */
 
-   LOG_INFO("Server is now ready to accept connections.\n");
-
-   while (1) {
+   LOG_INFO(DISPATCHER "ready to accept requests\n");
+   while (termina == 0) {
       rdset = set;
-	   if (select(fd_max+1, &rdset, NULL, NULL, NULL) == -1) {
+	   if (select(fd_max+1, &rdset, NULL, NULL, NULL) == -1 && errno != EINTR) {
 	       perror("select");
 	       exit(-1);
 	   }
@@ -152,6 +169,7 @@ main(int argc, char * const argv[])
                   perror("accept() failed");
                   return -1;
                }
+               LOG_INFO(DISPATCHER "accepted new connection from " CLIENT "\n", client_fd - 5);
                // LOG_INFO(BOLD "[MASTER] " RESET "new connection from client with fd %d\n", client_fd);
                // printf("adding fd %d (new client) to set\n", client_fd);
                FD_SET(client_fd, &set);
@@ -161,6 +179,7 @@ main(int argc, char * const argv[])
                //LOG_INFO(BOLD "[MASTER] " RESET "new request from client with fd %d\n", fd);
                // printf("and its a new request from already connected client\n");
                LOCK_RETURN(&(requests->lock), -1);
+               LOG_INFO(DISPATCHER "dispatching request of " CLIENT "\n", fd - 5);
                // LOG_INFO(BOLD "[MASTER] " RESET "enqueuing request\n");
                // printf("fd %d added to queue\n", fd);
                enqueue(requests->queue, (void*)&fd);
@@ -195,8 +214,9 @@ main(int argc, char * const argv[])
 		   }
          // printf("No news on fd %d\n", fd);
       }
-   }
 
+   }
+   
    if (socket_fd != -1) close(socket_fd);
    return 0;
 }

@@ -1,0 +1,17 @@
+[1msrc/option_parser.c:parse_options:65: [0m[1m[33mdebug[0m: read multiple files option recognized
+[1m[32minfo[0m: [1mCLIENT CONFIGURATION
+[0m[1m[32minfo[0m: [1mSOCKET:      [0m/tmp/filestorage.sk
+[1m[32minfo[0m: [1mVERBOSE:     [0mfalse
+[1m[32minfo[0m: [1mWAIT TIME:   [0m0
+[1m[32minfo[0m: [1mREAD DIR:    [0m###
+[1m[32minfo[0m: [1mTRASH DIR:   [0m###
+[1msrc/open_connection.c:openConnection:8: [0m[1m[33mdebug[0m: attempting to open a connection on socket [/tmp/filestorage.sk]
+[1msrc/open_connection.c:openConnection:31: [0m[1m[33mdebug[0m: sending handshake message
+[1msrc/open_connection.c:openConnection:39: [0m[1m[33mdebug[0m: awaiting server handshake
+[1m[32minfo[0m: Connection enstablished
+[1msrc/client.c:execute_request:124: [0m[1m[33mdebug[0m: executing request [1mread files
+[0m[1msrc/read_file.c:readFile:7: [0m[1m[33mdebug[0m: requesting read of file [client5.txt]
+[1msrc/read_file.c:readFile:15: [0m[1m[33mdebug[0m: awaiting server response
+[1msrc/read_file.c:readFile:18: [0m[1m[31merror[0m: recv_message(): Connection reset by peer
+[1msrc/client.c:execute_request:140: [0m[1m[31merror[0m: could not read file [client5.txt] from server. ERROR: Connection reset by peer
+[1msrc/close_connection.c:closeConnection:6: [0m[1m[33mdebug[0m: closing the connection on socket [/tmp/filestorage.sk]

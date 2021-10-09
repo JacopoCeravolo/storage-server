@@ -1,0 +1,42 @@
+[1msrc/option_parser.c:parse_options:98: [0m[1m[33mdebug[0m: write multiple files option recognized
+[1m[32minfo[0m: [1mCLIENT CONFIGURATION
+[0m[1m[32minfo[0m: [1mSOCKET:      [0m/tmp/filestorage.sk
+[1m[32minfo[0m: [1mVERBOSE:     [0mfalse
+[1m[32minfo[0m: [1mWAIT TIME:   [0m0
+[1m[32minfo[0m: [1mREAD DIR:    [0m###
+[1m[32minfo[0m: [1mTRASH DIR:   [0m###
+[1msrc/open_connection.c:openConnection:8: [0m[1m[33mdebug[0m: attempting to open a connection on socket [/tmp/filestorage.sk]
+[1msrc/open_connection.c:openConnection:31: [0m[1m[33mdebug[0m: sending handshake message
+[1msrc/open_connection.c:openConnection:39: [0m[1m[33mdebug[0m: awaiting server handshake
+[1m[32minfo[0m: Connection enstablished
+[1msrc/client.c:execute_request:124: [0m[1m[33mdebug[0m: executing request [1mwrite files
+[0m[1msrc/write_file.c:writeFile:12: [0m[1m[33mdebug[0m: opening file [data/file6.c] from disk
+[1msrc/write_file.c:writeFile:31: [0m[1m[33mdebug[0m: reading file contents
+[1msrc/write_file.c:writeFile:50: [0m[1m[33mdebug[0m: writing file [data/file6.c] to server
+[1msrc/write_file.c:writeFile:62: [0m[1m[33mdebug[0m: awaiting server response
+[1m[32minfo[0m: successfully written file [data/file6.c] to server.
+[1msrc/close_connection.c:closeConnection:6: [0m[1m[33mdebug[0m: closing the connection on socket [/tmp/filestorage.sk]
+[1msrc/close_connection.c:closeConnection:19: [0m[1m[33mdebug[0m: awaiting server response
+[1m[32minfo[0m: Connection closed
+[1m[32minfo[0m: Cleaning up..
+[1m[32minfo[0m: Exiting
+[1m[35m
+HANDSHAKE
+[0m[1m
+MESSAGE HEADER:
+[0mCode:      SUCCESS
+File:      /tmp/filestorage.sk
+Body Size: 8
+[1mBODY:
+[0mSUCCESS
+
+[1m[35m
+RESPONSE
+[0m[1m
+MESSAGE HEADER:
+[0mCode:      SUCCESS
+File:      data/file6.c
+Body Size: 30
+[1mBODY:
+[0mWrite of file was successfull
+

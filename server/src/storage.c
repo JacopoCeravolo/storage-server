@@ -67,7 +67,32 @@ read_file(storage_t *storage, char *pathname)
     if (file == NULL) return NULL;
 
     file = (file_t*)icl_hash_find(storage->files, pathname);
-    LOG_DEBUG("found successfull\n");
-    LOG_INFO("%s\n", (char*)file->contents);
+    // LOG_DEBUG("found successfull\n");
+    // LOG_INFO("%s\n", (char*)file->contents);
     return file->contents;
+}
+
+int
+storage_dump(storage_t *storage, FILE* stream)
+{
+    icl_entry_t *bucket, *curr;
+    int i;
+
+    if(!storage->files) return -1;
+
+    for(i=0; i<storage->files->nbuckets; i++) {
+        bucket = storage->files->buckets[i];
+        for(curr=bucket; curr!=NULL; ) {
+            if(curr->key) {
+                fprintf(stream, "\n***********************\n");
+                file_t *f = (file_t*)curr->data;
+                fprintf(stream, "* ENTRY: %s\n* SIZE: %ld (bytes)\n", (char *)curr->key, f->size);
+                fprintf(stream, "***********************\n");
+            
+            }
+            curr=curr->next;
+        }
+    }
+
+    return 0;
 }
