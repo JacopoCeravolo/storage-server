@@ -9,12 +9,21 @@
 [1msrc/open_connection.c:openConnection:31: [0m[1m[33mdebug[0m: sending handshake message
 [1msrc/open_connection.c:openConnection:39: [0m[1m[33mdebug[0m: awaiting server handshake
 [1m[32minfo[0m: Connection enstablished
-[1msrc/client.c:execute_request:124: [0m[1m[33mdebug[0m: executing request [1mwrite files
+[1msrc/client.c:execute_request:125: [0m[1m[33mdebug[0m: executing request [1mwrite files
 [0m[1msrc/write_file.c:writeFile:12: [0m[1m[33mdebug[0m: opening file [data/file1.c] from disk
 [1msrc/write_file.c:writeFile:31: [0m[1m[33mdebug[0m: reading file contents
-[1msrc/write_file.c:writeFile:50: [0m[1m[33mdebug[0m: writing file [data/file1.c] to server
-[1msrc/write_file.c:writeFile:62: [0m[1m[33mdebug[0m: awaiting server response
+[1msrc/open_file.c:openFile:12: [0m[1m[33mdebug[0m: requesting open of file [data/file1.c]
+[1msrc/open_file.c:openFile:23: [0m[1m[33mdebug[0m: awaiting server response
+[1msrc/write_file.c:writeFile:51: [0m[1m[33mdebug[0m: writing file [data/file1.c] to server
+[1msrc/write_file.c:writeFile:63: [0m[1m[33mdebug[0m: awaiting server response
 [1m[32minfo[0m: successfully written file [data/file1.c] to server.
+[1msrc/write_file.c:writeFile:12: [0m[1m[33mdebug[0m: opening file [data/file2.h] from disk
+[1msrc/write_file.c:writeFile:31: [0m[1m[33mdebug[0m: reading file contents
+[1msrc/open_file.c:openFile:12: [0m[1m[33mdebug[0m: requesting open of file [data/file2.h]
+[1msrc/open_file.c:openFile:23: [0m[1m[33mdebug[0m: awaiting server response
+[1msrc/write_file.c:writeFile:51: [0m[1m[33mdebug[0m: writing file [data/file2.h] to server
+[1msrc/write_file.c:writeFile:63: [0m[1m[33mdebug[0m: awaiting server response
+[1m[32minfo[0m: successfully written file [data/file2.h] to server.
 [1msrc/close_connection.c:closeConnection:6: [0m[1m[33mdebug[0m: closing the connection on socket [/tmp/filestorage.sk]
 [1msrc/close_connection.c:closeConnection:19: [0m[1m[33mdebug[0m: awaiting server response
 [1m[32minfo[0m: Connection closed
@@ -36,7 +45,37 @@ RESPONSE
 MESSAGE HEADER:
 [0mCode:      SUCCESS
 File:      data/file1.c
-Body Size: 30
+Body Size: 26
 [1mBODY:
-[0mWrite of file was successfull
+[0mOpen file was successfull
+
+[1m[35m
+RESPONSE
+[0m[1m
+MESSAGE HEADER:
+[0mCode:      SUCCESS
+File:      data/file1.c
+Body Size: 27
+[1mBODY:
+[0mWrite file was successfull
+
+[1m[35m
+RESPONSE
+[0m[1m
+MESSAGE HEADER:
+[0mCode:      ERROR
+File:      data/file2.h
+Body Size: 24
+[1mBODY:
+[0mFile already in storage
+
+[1m[35m
+RESPONSE
+[0m[1m
+MESSAGE HEADER:
+[0mCode:      ERROR
+File:      data/file2.h
+Body Size: 18
+[1mBODY:
+[0mPermission denied
 

@@ -30,13 +30,17 @@ cleanup()
 
 int termina = 0;
 storage_t *storage = NULL;
-FILE *logfile;
+
 
 void int_handler(int dummy) {
+   FILE *logfile;
+   /* Open logfile */
+   logfile = fopen("logs/server-log.txt", "w+");
    printf("\nHandling SIGNIT exit\n");
    if (storage_dump(storage, logfile) != 0) {
       LOG_ERROR("could not write to logfile\n");
    }
+   fclose(logfile);
    exit(0);
 }
 
@@ -47,8 +51,6 @@ main(int argc, char * const argv[])
    signal(SIGPIPE, SIG_IGN);
    signal(SIGINT, int_handler);
 
-   /* Open logfile */
-   logfile = fopen("logs/server-log.txt", "w+");
 
    /* Initilize storage */
 
@@ -56,7 +58,7 @@ main(int argc, char * const argv[])
       LOG_FATAL("could not create storage, exiting..\n");
       return -1;
    }
-   LOG_INFO(DISPATCHER "storage initialized\n");
+   // LOG_INFO(DISPATCHER "storage initialized\n");
    
    /* Opening the socket */
 
@@ -88,7 +90,7 @@ main(int argc, char * const argv[])
       return -1;
    }
 
-   LOG_INFO(DISPATCHER "socket ready\n");
+   // LOG_INFO(DISPATCHER "socket ready\n");
 
    /* Sets pipes and FD_SET */
 
@@ -117,7 +119,7 @@ main(int argc, char * const argv[])
    if (mw_pipe[0] > fd_max) fd_max = mw_pipe[0];
    /* Initialize bounded queue and starts threads */
 
-   LOG_INFO(DISPATCHER "pipe and file descriptors ready\n");
+   // LOG_INFO(DISPATCHER "pipe and file descriptors ready\n");
 
    lqueue_t *requests = malloc(sizeof(lqueue_t));
 
@@ -131,7 +133,7 @@ main(int argc, char * const argv[])
 	   return -1;
    }
 
-   LOG_INFO(DISPATCHER "starting threads\n");
+   // LOG_INFO(DISPATCHER "starting threads\n");
 
    pthread_t *workers = malloc(sizeof(pthread_t) * 5);
 
@@ -149,7 +151,7 @@ main(int argc, char * const argv[])
 
    /* Starts accepting requests */
 
-   LOG_INFO(DISPATCHER "ready to accept requests\n");
+   LOG_INFO("Server is ready to accept requests\n");
    while (termina == 0) {
       rdset = set;
 	   if (select(fd_max+1, &rdset, NULL, NULL, NULL) == -1 && errno != EINTR) {
@@ -169,7 +171,7 @@ main(int argc, char * const argv[])
                   perror("accept() failed");
                   return -1;
                }
-               LOG_INFO(DISPATCHER "accepted new connection from " CLIENT "\n", client_fd - 5);
+               // LOG_INFO("accepted new connection from " CLIENT "\n", client_fd -5 );
                // LOG_INFO(BOLD "[MASTER] " RESET "new connection from client with fd %d\n", client_fd);
                // printf("adding fd %d (new client) to set\n", client_fd);
                FD_SET(client_fd, &set);
@@ -179,7 +181,7 @@ main(int argc, char * const argv[])
                //LOG_INFO(BOLD "[MASTER] " RESET "new request from client with fd %d\n", fd);
                // printf("and its a new request from already connected client\n");
                LOCK_RETURN(&(requests->lock), -1);
-               LOG_INFO(DISPATCHER "dispatching request of " CLIENT "\n", fd - 5);
+               // LOG_INFO("new request of " CLIENT "\n", fd - 5);
                // LOG_INFO(BOLD "[MASTER] " RESET "enqueuing request\n");
                // printf("fd %d added to queue\n", fd);
                enqueue(requests->queue, (void*)&fd);

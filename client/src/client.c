@@ -76,7 +76,7 @@ main(int argc, char * const argv[])
     
     /* Connects to socket */
     // LOG_DEBUG("connecting to socket [%s]\n", config->socket_name);
-
+    srand(time(NULL));
     struct timespec abstime;
     if (openConnection(config->socket_name, 0, abstime) != 0) {
         LOG_FATAL("connection not enstablished, ERROR: %s\n", strerror(errno));
@@ -85,15 +85,16 @@ main(int argc, char * const argv[])
         free(config);
         return -1;
     }
-    sleep(1);
+    sleep(rand() % 2);
 
     LOG_INFO("Connection enstablished\n");
     // LOG_INFO(BOLD "PARSED OPTIONS\n" RESET);
+    
     option_t opt;
     while (!isEmpty(option_list)) {
         dequeue(option_list, &opt);
         execute_request(opt);
-        sleep(2);
+        sleep(rand() % 2);
     }
 
     if (closeConnection(config->socket_name) != 0) {
@@ -102,7 +103,7 @@ main(int argc, char * const argv[])
         free(config);
         return -1;
     }
-    sleep(1);
+    
 
     LOG_INFO("Connection closed\n");
     LOG_INFO("Cleaning up..\n");

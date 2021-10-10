@@ -18,9 +18,21 @@
 #define MAX_BUFFER  4096
 #endif
 
+#ifndef MAX_OWNERS
+#define MAX_OWNERS 10
+#endif
+
+#ifndef O_CREATE
+#define O_CREATE  0
+#endif
+
 #ifndef DEBUG
 #define DEBUG   false
 #endif
+
+#define DISPATCHER  BOLD "[DISPATCHER] " RESET
+#define WORKER      BOLD "[WORKER %d] " RESET
+#define CLIENT      BOLD "(client %d) " RESET
 
 #define LOCK(l)      if (pthread_mutex_lock(l)!=0)        { \
     fprintf(stderr, "ERRORE FATALE lock\n");		    \

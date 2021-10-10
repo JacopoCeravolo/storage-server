@@ -46,37 +46,40 @@ writeFile(const char* pathname, const char* dirname)
 
     fclose(file_ptr);
 
-    /* Writes file to server */
-    LOG_DEBUG("writing file [%s] to server\n", pathname);
+    if (openFile(pathname, O_CREATE) != -1) {
+        /* Writes file to server */
+        LOG_DEBUG("writing file [%s] to server\n", pathname);
+        
+        message_t *message;
     
-    message_t *message;
-
-    message = set_message(REQ_WRITE, pathname, file_size, file_data);
-
-    if (send_message(socket_fd, message) != 0) {
-      LOG_ERROR("send_message(): %s\n", strerror(errno));
-      return -1;
+        message = set_message(REQ_WRITE, pathname, file_size, file_data);
+    
+        if (send_message(socket_fd, message) != 0) {
+          LOG_ERROR("send_message(): %s\n", strerror(errno));
+          return -1;
+        }
+    
+        /* Read server response */
+        LOG_DEBUG("awaiting server response\n");
+        
+        if ((message = recv_message(socket_fd)) == NULL) {
+          LOG_ERROR("recv_message(): %s\n", strerror(errno));
+          return -1;
+        }
+        
+        printf(BOLDMAGENTA "\nRESPONSE\n" RESET);
+        printf(BOLD "\nMESSAGE HEADER:\n" RESET);
+        printf("Code:      %s\n", msg_code_to_str(message->header.code));
+        printf("File:      %s\n",message->header.filename);
+        printf("Body Size: %ld\n", message->header.msg_size);
+        printf(BOLD "BODY:\n" RESET);
+        printf("%s\n\n", (char*)message->body);
+    
+        free(file_data);
+        free(message->body);
+        free(message);
+        return 0;
     }
 
-    /* Read server response */
-    LOG_DEBUG("awaiting server response\n");
-    
-    if ((message = recv_message(socket_fd)) == NULL) {
-      LOG_ERROR("recv_message(): %s\n", strerror(errno));
-      return -1;
-    }
-    
-    printf(BOLDMAGENTA "\nRESPONSE\n" RESET);
-    printf(BOLD "\nMESSAGE HEADER:\n" RESET);
-    printf("Code:      %s\n", msg_code_to_str(message->header.code));
-    printf("File:      %s\n",message->header.filename);
-    printf("Body Size: %ld\n", message->header.msg_size);
-    printf(BOLD "BODY:\n" RESET);
-    printf("%s\n\n", (char*)message->body);
-
-    free(file_data);
-    free(message->body);
-    free(message);
-    return 0;
-
+    return -1;
 }
