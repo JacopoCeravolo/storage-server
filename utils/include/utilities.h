@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #ifndef DEFAULT_SOCKET_PATH
 #define DEFAULT_SOCKET_PATH     "/tmp/filestorage.sk"
@@ -22,9 +23,14 @@
 #define MAX_OWNERS 10
 #endif
 
-#ifndef O_CREATE
-#define O_CREATE  0
-#endif
+#define O_CREATE    (1 << 0)
+#define O_LOCK      (1 << 1)
+#define O_READ      (1 << 2)
+
+#define SET_FLAG(n, f) ((n) |= (f)) 
+#define CLR_FLAG(n, f) ((n) &= ~(f)) 
+#define TGL_FLAG(n, f) ((n) ^= (f)) 
+#define CHK_FLAG(n, f) ((n) & (f))
 
 #ifndef DEBUG
 #define DEBUG   false

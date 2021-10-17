@@ -3,20 +3,20 @@
 
 #include <pthread.h>
 
-#include "utils/include/queue.h"
+#include "utils/include/list.h"
 
-typedef struct _lqueue_t {
-    queue_t *queue;
+typedef struct _llist_t {
+    list_t *queue;
     int     queue_size;
     pthread_mutex_t lock;
     pthread_cond_t  notify;
-} lqueue_t;
+} llist_t;
 
 typedef struct _worker_arg_t {
 
     int         worker_id;
     int         pipe_fd;
-    lqueue_t    *requests;
+    llist_t    *requests;
     int         exit;
 
 } worker_arg_t;

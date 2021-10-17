@@ -106,6 +106,7 @@ debug: CFLAGS += $(DEBUG)
 debug: 
 	@make all
 
+test: CFLAGS += -g
 test: 
 	@make cleanall debug
 	@cp $(CLIENT_EXE) test/
@@ -135,7 +136,7 @@ cleanutils:
 	@echo "${GREEN}Utilites removed ${RESET}"
 
 cleantest:
-	@cd test && rm -rf client server
+	@cd test && rm -rf client server logs/*.txt
 	@echo "${GREEN}Test directory cleaned ${RESET}"
 
 cleanall:

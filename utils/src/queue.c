@@ -16,20 +16,20 @@ queue_t *createQueue(size_t allocSize)
 int enqueue(queue_t *q, void *data)
 {
 	if (q == NULL) {
-		fprintf(stderr, "Queue can't be null");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Queue can't be null\n");
+		return -1;
 	}
 
 	node_t *toInsert = (node_t *)malloc(sizeof(node_t));
 	if (toInsert == NULL) {
-		fprintf(stderr, "Error allocating memory");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Error allocating memory\n");
+		return -1;
 	}
 	
 	toInsert->data = malloc(q->allocationSize);
 	if (toInsert->data == NULL) {
-		fprintf(stderr, "Error allocating memory");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Error allocating memory\n");
+		return -1;
 	}
 
 	toInsert->next = NULL;
@@ -47,8 +47,8 @@ int enqueue(queue_t *q, void *data)
 int dequeue(queue_t *q, void *toReturn)
 {
 	if (q == NULL || isEmpty(q)) {
-		fprintf(stderr, "Queue is null or empty");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Queue is null or empty\n");
+		return -1;
 	}
 
 	node_t *toDelete = q->head;
@@ -73,8 +73,8 @@ int dequeue(queue_t *q, void *toReturn)
 int clearQueue(queue_t *q)
 {
 	if (q == NULL) {
-		fprintf(stderr, "Queue can't be null");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Queue can't be null\n");
+		return -1;
 	}
 
 	while (!isEmpty(q)) {

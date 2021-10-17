@@ -29,11 +29,14 @@ TARGET		= server
 
 # Library targets
 QUEUE 		= $(UTIL_LIBS)/libqueue.so
+LIST		= $(UTIL_LIBS)/liblist.so
 PROTOCOL	= $(UTIL_LIBS)/libprotocol.so
 
 LINK_PROTOCOL 	= -Wl,-rpath,$(UTIL_LIBS)
 LINK_PROTOCOL	+= -L $(UTIL_LIBS)
 LINK_PROTOCOL	+= -lprotocol
+LINK_PROTOCOL 	+= -llist
+
  
 LINK_ALL	= $(LINK_PROTOCOL) -lqueue -lpthread
 

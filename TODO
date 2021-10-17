@@ -13,4 +13,9 @@
 [] PROTOCOL: errore valgrind realloc in recv_message
 
 [] SERVER: struttura ad albero per directory
-[] SERVER: sottostruttura hashtable per file
+[] SERVER: sottostruttura hashtable per file 
+[] SERVER: lock solo sull'intero storage 
+
+[] STORAGE: uso di read/write locks
+
+[] GENERAL: cambiare queue in list e migliorare hashtable

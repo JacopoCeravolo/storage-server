@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "client/include/client_config.h"
 #include "client/include/option_parser.h"
@@ -9,7 +10,9 @@
 
 #include "utils/include/utilities.h"
 #include "utils/include/logger.h"
-#include "utils/include/queue.h"
+#include "utils/include/list.h"
+
+// #define LOG_FILE stdout
 
 void
 print_help_msg();
@@ -18,14 +21,16 @@ int
 write_files_to_directory(const char *dirname, const char *file_buffer);
 
 int
-execute_request(option_t opt);
+execute_request(option_t *opt);
 
-queue_t     *option_list;
+list_t     *option_list;
 config_t    *config; 
 
 int 
 main(int argc, char * const argv[])
 {
+    signal(SIGPIPE, SIG_IGN);
+
     /* Check if the program has at least one argument */
     if (argc < 2) {
         LOG_INFO("Client program requires at least one argument, rerun with -h for usage\n");
@@ -44,7 +49,7 @@ main(int argc, char * const argv[])
     strcpy(config->expelled_dir, DIRECTORY_NOT_SET);
 
     /* Initialize option queue  */
-    option_list = createQueue(sizeof(option_t));
+    option_list = list_create(NULL, free_option, print_option);
     if (option_list == NULL) {
         LOG_FATAL("option list not created. ERROR: %s\n", strerror(errno));
         return -1;
@@ -59,7 +64,7 @@ main(int argc, char * const argv[])
     if (config->print_helper == true) {
         if (DEBUG) LOG_DEBUG("About to print helper and exit\n");
         print_help_msg();
-        destroyQueue(option_list);
+        list_destroy(option_list);
         free(config);
         return 0;
     }
@@ -82,6 +87,7 @@ main(int argc, char * const argv[])
         LOG_FATAL("connection not enstablished, ERROR: %s\n", strerror(errno));
         LOG_INFO("Exiting...\n");
         // clear option queue
+        list_destroy(option_list);
         free(config);
         return -1;
     }
@@ -90,16 +96,16 @@ main(int argc, char * const argv[])
     LOG_INFO("Connection enstablished\n");
     // LOG_INFO(BOLD "PARSED OPTIONS\n" RESET);
     
-    option_t opt;
-    while (!isEmpty(option_list)) {
-        dequeue(option_list, &opt);
-        execute_request(opt);
+    while (!list_is_empty(option_list)) {
+        void *tmp;
+        list_remove_head(option_list, &tmp);
+        execute_request((option_t*)tmp);
         sleep(rand() % 2);
     }
 
     if (closeConnection(config->socket_name) != 0) {
         LOG_FATAL("connection is not closed, ERROR: %s\n", strerror(errno));
-        destroyQueue(option_list);
+        list_destroy(option_list);
         free(config);
         return -1;
     }
@@ -107,7 +113,7 @@ main(int argc, char * const argv[])
 
     LOG_INFO("Connection closed\n");
     LOG_INFO("Cleaning up..\n");
-    destroyQueue(option_list);
+    list_destroy(option_list);
     free(config);
     LOG_INFO("Exiting\n");
     return 0;
@@ -120,23 +126,24 @@ write_files_to_directory(const char *dirname, const char *file_buffer)
 }
 
 int
-execute_request(option_t opt)
+execute_request(option_t *opt)
 {
-    if (DEBUG) LOG_DEBUG("executing request " BOLD "%s\n" RESET, option_to_str(opt.code));
-    switch (opt.code) {
+    if (DEBUG) LOG_DEBUG("executing request " BOLD "%s\n" RESET, option_to_str(opt->code));
+    switch (opt->code) {
         case OPTION_READ: {
-            char    *pathname = malloc(MAX_PATH);
             void*   buffer;
             size_t  size;
             char *abs_dirname = NULL;
             if (strcmp(config->reading_dir, DIRECTORY_NOT_SET) != 0) {
                 abs_dirname = malloc(MAX_PATH);
                 strcpy(abs_dirname, config->reading_dir);
-                // TODO: get absolute path
+                // TODO: get absolute path 
             }
             if (abs_dirname != NULL && DEBUG) LOG_DEBUG("abs dir: %s\n", abs_dirname); // ugly
-            while (!isEmpty(opt.files_list)) {
-                dequeue(opt.files_list, pathname);
+            while (!list_is_empty(opt->files_list)) {
+                void *tmp;
+                list_remove_head(opt->files_list, &tmp);
+                char *pathname = (char*)tmp;
                 if (readFile(pathname, &buffer, &size) != 0) {
                     LOG_ERROR("could not read file [%s] from server. ERROR: %s\n", pathname, strerror(errno));
                     break;
@@ -154,13 +161,11 @@ execute_request(option_t opt)
                     LOG_INFO("trashing file [%s]\n", pathname);
                 }
             }
-            free(pathname);
             if (abs_dirname != NULL) free(abs_dirname);
-            destroyQueue(opt.files_list);
+            list_destroy(opt->files_list);
             break;
         }
         case OPTION_WRITE: {
-            char *pathname = malloc(MAX_PATH);
             char *abs_dirname = NULL;
             if (strcmp(config->expelled_dir, DIRECTORY_NOT_SET) != 0) {
                 abs_dirname = malloc(MAX_PATH);
@@ -168,8 +173,10 @@ execute_request(option_t opt)
                 // TODO: get absolute path
             }
             if (abs_dirname != NULL && DEBUG) LOG_DEBUG("abs dir: %s\n", abs_dirname); // ugly
-            while (!isEmpty(opt.files_list)) {
-                dequeue(opt.files_list, pathname);
+            while (!list_is_empty(opt->files_list)) {
+                void* tmp;
+                list_remove_head(opt->files_list, &tmp);
+                char *pathname = (char*)tmp;
                 if (writeFile(pathname, abs_dirname) != 0) {
                     LOG_ERROR("could not write file [%s] to server. ERROR: %s\n", pathname, strerror(errno));
                     break;
@@ -177,9 +184,8 @@ execute_request(option_t opt)
                     LOG_INFO("successfully written file [%s] to server.\n", pathname);
                 }
             }
-            free(pathname);
             if (abs_dirname != NULL) free(abs_dirname);
-            destroyQueue(opt.files_list);
+            list_destroy(opt->files_list);
             break;
         }
         case OPTION_RREAD: {
@@ -190,11 +196,11 @@ execute_request(option_t opt)
                 // TODO: get absolute path
             }
             if (abs_dirname != NULL && DEBUG) LOG_DEBUG("abs dir: %s\n", abs_dirname); // ugly
-            if (readNFiles(opt.how_many_files, abs_dirname) != 0) {
-                LOG_ERROR("could not read %d files from server.\n", opt.how_many_files);
+            if (readNFiles(opt->how_many_files, abs_dirname) != 0) {
+                LOG_ERROR("could not read %d files from server.\n", opt->how_many_files);
                 break;
             } else {
-                LOG_INFO("successfully read %d files from server.\n", opt.how_many_files);
+                LOG_INFO("successfully read %d files from server.\n", opt->how_many_files);
             }
             if (abs_dirname != NULL) free(abs_dirname);
             break;
@@ -204,9 +210,11 @@ execute_request(option_t opt)
             break;
         }
         case OPTION_LOCK: {
-            char *pathname = malloc(MAX_PATH);
-            while (!isEmpty(opt.files_list)) {
-                dequeue(opt.files_list, pathname);
+            // char *pathname = malloc(MAX_PATH);
+            while (!list_is_empty(opt->files_list)) {
+                void* tmp;
+                list_remove_head(opt->files_list, &tmp);
+                char *pathname = (char*)tmp;
                 if (lockFile(pathname) != 0) {
                     LOG_ERROR("could not lock file [%s] in server.\n", pathname);
                     break;
@@ -214,14 +222,15 @@ execute_request(option_t opt)
                     LOG_INFO("successfully locked file [%s] in server.\n", pathname);
                 }
             }
-            free(pathname);
-            destroyQueue(opt.files_list);
+            list_destroy(opt->files_list);
             break;
         }
         case OPTION_UNLOCK: {
-            char *pathname = malloc(MAX_PATH);
-            while (!isEmpty(opt.files_list)) {
-                dequeue(opt.files_list, pathname);
+            // char *pathname = malloc(MAX_PATH);
+            while (!list_is_empty(opt->files_list)) {
+                void* tmp;
+                list_remove_head(opt->files_list, &tmp);
+                char *pathname = (char*)tmp;
                 if (unlockFile(pathname) != 0) {
                     LOG_ERROR("could not unlock file [%s] in server.\n", pathname);
                     break;
@@ -229,14 +238,15 @@ execute_request(option_t opt)
                     LOG_INFO("successfully unlocked file [%s] in server.\n", pathname);
                 }
             }
-            free(pathname);
-            destroyQueue(opt.files_list);
+            list_destroy(opt->files_list);
             break;
         }
         case OPTION_REMOVE: {
-            char *pathname = malloc(MAX_PATH);
-            while (!isEmpty(opt.files_list)) {
-                dequeue(opt.files_list, pathname);
+            // char *pathname = malloc(MAX_PATH);
+            while (!list_is_empty(opt->files_list)) {
+                void* tmp;
+                list_remove_head(opt->files_list, &tmp);
+                char *pathname = (char*)tmp;
                 if (removeFile(pathname) != 0) {
                     LOG_ERROR("could not remove file [%s] from server.\n", pathname);
                     break;
@@ -244,8 +254,7 @@ execute_request(option_t opt)
                     LOG_INFO("successfully removed file [%s] from server.\n", pathname);
                 }
             }
-            free(pathname);
-            destroyQueue(opt.files_list);
+            list_destroy(opt->files_list);
             break;
         }
     }

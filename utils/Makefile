@@ -16,6 +16,7 @@ endif
 
 # Library targets
 QUEUE 		= $(UTIL_LIBS)/libqueue.so
+LIST		= $(UTIL_LIBS)/liblist.so
 PROTOCOL 	= $(UTIL_LIBS)/libprotocol.so
 
 # Flags
@@ -57,12 +58,17 @@ $(LIBDIR)/%.so: $(OBJDIR)%.o
 all: 
 	@make queue
 	@make protocol
+	@make list
 
 queue: 
 	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/queue.o $(SRCDIR)/queue.c
 	$(RM) $(QUEUE)
 	$(CC) -shared -o $(QUEUE) $(OBJDIR)/queue.o
 
+list: 
+	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/list.o $(SRCDIR)/list.c
+	$(RM) $(LIST)
+	$(CC) -shared -o $(LIST) $(OBJDIR)/list.o
 
 protocol: 
 	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/protocol.o $(SRCDIR)/protocol.c
@@ -79,4 +85,4 @@ clean:
 	$(RM) $(OBJ) $(DEP) 
 
 cleanall:
-	$(RM) $(OBJ) $(DEP) $(QUEUE) $(PROTOCOL)
+	$(RM) $(OBJ) $(DEP) $(QUEUE) $(PROTOCOL) $(LIST)

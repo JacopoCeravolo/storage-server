@@ -9,9 +9,9 @@ writeFile(const char* pathname, const char* dirname)
     }
 
     /* Opening file from disk */
-    LOG_DEBUG("opening file [%s] from disk\n", pathname);
+    if (DEBUG) if (DEBUG) LOG_DEBUG("opening file [%s] from disk\n", pathname);
     FILE *file_ptr;
-    file_ptr = fopen(pathname, "r");
+    file_ptr = fopen(pathname, "rb");
     if (file_ptr == NULL) {
         errno = EIO;
         return -1;
@@ -28,7 +28,7 @@ writeFile(const char* pathname, const char* dirname)
     }
 
     /* Read file contents */
-    LOG_DEBUG("reading file contents\n");
+    if (DEBUG) LOG_DEBUG("reading file contents\n");
     char *file_data;
     file_data = malloc(file_size);
     if (file_data == NULL) {
@@ -46,39 +46,56 @@ writeFile(const char* pathname, const char* dirname)
 
     fclose(file_ptr);
 
-    if (openFile(pathname, O_CREATE) != -1) {
+
+    int flags = 0;
+    SET_FLAG(flags, O_CREATE);
+    SET_FLAG(flags, O_LOCK);
+
+
+    if (openFile(pathname, flags) != -1) {
+
+        LOG_INFO("%d %d -----> %d\n", O_CREATE, O_LOCK, O_CREATE|O_LOCK);
         /* Writes file to server */
-        LOG_DEBUG("writing file [%s] to server\n", pathname);
+        if (DEBUG) LOG_DEBUG("writing file [%s] to server\n", pathname);
         
         message_t *message;
     
         message = set_message(REQ_WRITE, pathname, file_size, file_data);
     
+        printf(BOLD "\nREQUEST\n" RESET
+            BOLD "Code: " RESET "%s\n"
+            BOLD "File: " RESET "%s\n"
+            BOLD "BODY\n" RESET "%s\n", 
+            msg_code_to_str(message->header.code), 
+            message->header.filename, (char*)message->body);
+
         if (send_message(socket_fd, message) != 0) {
           LOG_ERROR("send_message(): %s\n", strerror(errno));
           return -1;
         }
     
         /* Read server response */
-        LOG_DEBUG("awaiting server response\n");
+        if (DEBUG) LOG_DEBUG("awaiting server response\n");
         
         if ((message = recv_message(socket_fd)) == NULL) {
           LOG_ERROR("recv_message(): %s\n", strerror(errno));
           return -1;
         }
         
-        printf(BOLDMAGENTA "\nRESPONSE\n" RESET);
-        printf(BOLD "\nMESSAGE HEADER:\n" RESET);
-        printf("Code:      %s\n", msg_code_to_str(message->header.code));
-        printf("File:      %s\n",message->header.filename);
-        printf("Body Size: %ld\n", message->header.msg_size);
-        printf(BOLD "BODY:\n" RESET);
-        printf("%s\n\n", (char*)message->body);
+        printf(BOLD "\nRESPONSE\n" RESET
+            BOLD "Code: " RESET "%s\n"
+            BOLD "File: " RESET "%s\n"
+            BOLD "BODY\n" RESET "%s\n", 
+            msg_code_to_str(message->header.code), 
+            message->header.filename, (char*)message->body);
+
     
+        int result = (message->header.code == RES_SUCCESS) ? 0 : -1;
+
         free(file_data);
         free(message->body);
         free(message);
-        return 0;
+        return result;
     }
 
     return -1;

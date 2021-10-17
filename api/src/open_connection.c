@@ -5,7 +5,7 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
 {
    /* Initialize sockaddr_un and tries to connect */
 
-   LOG_DEBUG("attempting to open a connection on socket [%s]\n", sockname);
+   if (DEBUG) LOG_DEBUG("attempting to open a connection on socket [%s]\n", sockname);
    int res;
    struct sockaddr_un serveraddr;
    socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -27,8 +27,15 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
    strcpy(buffer, HANDSHAKE_MSG);
 
    handshake = set_message(REQ_WELCOME, sockname, strlen(buffer) + 1, (void*)buffer);
+
+   printf(BOLD "\nREQUEST\n" RESET
+            BOLD "Code: " RESET "%s\n"
+            BOLD "File: " RESET "%s\n"
+            BOLD "BODY\n" RESET "%s\n", 
+            msg_code_to_str(handshake->header.code), 
+            handshake->header.filename, (char*)handshake->body);
    
-   LOG_DEBUG("sending handshake message\n");
+   if (DEBUG) LOG_DEBUG("sending handshake message\n");
    if (send_message(socket_fd, handshake) != 0) {
       LOG_ERROR("send_message(): %s\n", strerror(errno));
       return -1;
@@ -36,24 +43,24 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
 
    /* Read handshake result */
 
-   LOG_DEBUG("awaiting server handshake\n");
+   if (DEBUG) LOG_DEBUG("awaiting server handshake\n");
    if ((handshake = recv_message(socket_fd)) == NULL) {
       LOG_ERROR("recv_message(): %s\n", strerror(errno));
       return -1;
    }
 
-   printf(BOLDMAGENTA "\nHANDSHAKE\n" RESET);
-   printf(BOLD "\nMESSAGE HEADER:\n" RESET);
-   printf("Code:      %s\n", msg_code_to_str(handshake->header.code));
-   printf("File:      %s\n",handshake->header.filename);
-   printf("Body Size: %ld\n", handshake->header.msg_size);
-   printf(BOLD "BODY:\n" RESET);
-   printf("%s\n\n", (char*)handshake->body);
+   printf(BOLD "\nRESPONSE\n" RESET
+            BOLD "Code: " RESET "%s\n"
+            BOLD "File: " RESET "%s\n"
+            BOLD "BODY\n" RESET "%s\n", 
+            msg_code_to_str(handshake->header.code), 
+            handshake->header.filename, (char*)handshake->body);
     
    /* Cleanup */
-   
+   int result = (handshake->header.code == RES_SUCCESS) ? 0 : -1;
+
    free(buffer);
    free(handshake->body);
    free(handshake);
-   return 0;
+   return result;
 }

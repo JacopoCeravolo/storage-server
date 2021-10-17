@@ -30,6 +30,7 @@ cleanup()
 
 int termina = 0;
 storage_t *storage = NULL;
+llist_t *requests;
 
 
 void int_handler(int dummy) {
@@ -41,6 +42,12 @@ void int_handler(int dummy) {
       LOG_ERROR("could not write to logfile\n");
    }
    fclose(logfile);
+   //LOCK_RETURN(&(storage->storage_lock), NULL);
+   // if (storage) destroy_storage(storage);
+   //LOCK_RETURN(&(requests->lock), NULL);
+   list_destroy(requests->queue);
+   // UNLOCK_RETURN(&(requests->lock), NULL);
+   // UNLOCK_RETURN(&(storage->storage_lock), NULL);
    exit(0);
 }
 
@@ -54,7 +61,7 @@ main(int argc, char * const argv[])
 
    /* Initilize storage */
 
-   if ((storage = create_storage(4096, 100)) == NULL) {
+   if ((storage = storage_create(4096, 100)) == NULL) {
       LOG_FATAL("could not create storage, exiting..\n");
       return -1;
    }
@@ -121,14 +128,14 @@ main(int argc, char * const argv[])
 
    // LOG_INFO(DISPATCHER "pipe and file descriptors ready\n");
 
-   lqueue_t *requests = malloc(sizeof(lqueue_t));
+   requests = malloc(sizeof(llist_t));
 
-   requests->queue = createQueue(sizeof(int));
+   requests->queue = list_create(NULL, NULL, NULL);
    requests->queue_size = 0;
    // Mutex and conidition var initialization
    if ((pthread_mutex_init(&(requests->lock), NULL) != 0) ||
 	   (pthread_cond_init(&(requests->notify), NULL) != 0)) {
-	   destroyQueue(requests->queue);
+	   list_destroy(requests->queue);
       free(requests);
 	   return -1;
    }
@@ -152,6 +159,7 @@ main(int argc, char * const argv[])
    /* Starts accepting requests */
 
    LOG_INFO("Server is ready to accept requests\n");
+   // int client_id = 1;
    while (termina == 0) {
       rdset = set;
 	   if (select(fd_max+1, &rdset, NULL, NULL, NULL) == -1 && errno != EINTR) {
@@ -171,7 +179,7 @@ main(int argc, char * const argv[])
                   perror("accept() failed");
                   return -1;
                }
-               // LOG_INFO("accepted new connection from " CLIENT "\n", client_fd -5 );
+               LOG_INFO("accepted new connection from " CLIENT "\n", client_fd -5 );
                // LOG_INFO(BOLD "[MASTER] " RESET "new connection from client with fd %d\n", client_fd);
                // printf("adding fd %d (new client) to set\n", client_fd);
                FD_SET(client_fd, &set);
@@ -184,7 +192,7 @@ main(int argc, char * const argv[])
                // LOG_INFO("new request of " CLIENT "\n", fd - 5);
                // LOG_INFO(BOLD "[MASTER] " RESET "enqueuing request\n");
                // printf("fd %d added to queue\n", fd);
-               enqueue(requests->queue, (void*)&fd);
+               list_insert_tail(requests->queue, (void*)fd);
                requests->queue_size++;
 
                FD_CLR(fd, &set);

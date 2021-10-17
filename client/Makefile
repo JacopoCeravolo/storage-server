@@ -38,6 +38,7 @@ TARGET		= client
 
 # Library targets
 QUEUE 		= $(UTIL_LIBS)/libqueue.so
+LIST		= $(UTIL_LIBS)/liblist.so
 PROTOCOL	= $(UTIL_LIBS)/libprotocol.so
 API 		= $(API_LIBS)/libfilestorage_api.so
 
@@ -50,6 +51,7 @@ LINK_UTILS 	= -Wl,-rpath,$(UTIL_LIBS)
 LINK_UTILS	+= -L $(UTIL_LIBS)
 LINK_UTILS	+= -lqueue
 LINK_UTILS  += -lprotocol
+LINK_UTILS	+= -llist
 
  
 LINK_ALL	= $(LINK_API)

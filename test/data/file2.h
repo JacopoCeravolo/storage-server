@@ -49,23 +49,6 @@ typedef struct block
     size_t  size;
 } block;
 
-typedef struct Storage
-{
-    super_block sb;
-    file_to_inode_mapping file_inode_mapping_arr[NO_OF_INODES];
-    inode inode_arr[NO_OF_INODES];    
-    block disk[DISK_BLOCKS];
-} Storage;
-
-// Data Structure to be used.
-extern Storage  *storage;
-extern int      nf_in_storage;
-
-// Functions to be implemented
-int create_disk();          // Constructor
-int create_file(char*, char*);
-int remove_file(char*, char*);
-
 
 // Utilities
 int find_first_free_inode(int);

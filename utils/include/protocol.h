@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include "utils/include/utilities.h"
+
 typedef enum {
     
     /* SERVER --> CLIENT */

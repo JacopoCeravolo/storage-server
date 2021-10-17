@@ -6,90 +6,7 @@
 #include "utils/include/logger.h"
 #include "utils/include/protocol.h"
 #include "server/include/server_config.h"
-
-int
-open_file_handler(storage_t *storage, char *pathname, int flags, int client_id, char *reply_buffer)
-{
-    LOCK_RETURN(&(storage->storage_lock), -1);
-    
-    while (!(storage->is_free)) {
-        pthread_cond_wait(&(storage->storage_available), &(storage->storage_lock));
-    }
-    storage->is_free = 0;
-
-    int result;
-
-    result = open_file(storage, pathname, O_CREATE, client_id);
-
-    switch (result) {
-        case E_EXIST_ALREADY: {
-            LOG_ERROR(CLIENT "file [%s] exists already and should not be opened with O_CREATE\n", client_id, pathname);
-            strcpy(reply_buffer, "File already in storage");
-            break;
-        }
-        case E_NOEXIST: {
-            LOG_ERROR(CLIENT "file [%s] doesn't exists and should be opened with O_CREATE\n", client_id, pathname);
-            strcpy(reply_buffer, "File doesn't exist");
-            break;
-        }
-        case E_NOINITIALIZE: {
-            LOG_FATAL("storage is not initialized, exiting..\n");
-            strcpy(reply_buffer, "FATAL: storage is not initialized");
-            exit(EXIT_FAILURE); // TERRIBLE WAY OF EXITING
-        }
-        case STORAGE_OK: {
-            LOG_INFO(CLIENT "file [%s] successfully opened\n", client_id, pathname);
-            strcpy(reply_buffer, "Open file was successfull");
-            break;
-        }
-    }
-    storage->is_free = 1;
-    pthread_cond_signal(&(storage->storage_available));
-    UNLOCK_RETURN(&(storage->storage_lock), -1);
-    return result;
-}
-
-int 
-write_file_handler(storage_t *storage, char *pathname, size_t size, void* contents, int client_id, char *reply_buffer)
-{
-    LOCK_RETURN(&(storage->storage_lock), -1);
-    
-    while (!(storage->is_free)) {
-        pthread_cond_wait(&(storage->storage_available), &(storage->storage_lock));
-    }
-    storage->is_free = 0;
-
-    int result;
-
-    result = write_file(storage, pathname, size, contents, client_id);
-
-    switch (result) {
-        case E_NOPERMISSION: {
-            LOG_ERROR(CLIENT "doesn't have parmission to write file [%s]\n", client_id, pathname);
-            strcpy(reply_buffer, "Permission denied");
-            break;
-        }
-        case E_NOEXIST: {
-            LOG_ERROR(CLIENT "file [%s] doesn't exists\n", client_id, pathname);
-            strcpy(reply_buffer, "File doesn't exist");
-            break;
-        }
-        case E_NOINITIALIZE: {
-            LOG_FATAL("storage is not initialized, exiting..\n");
-            strcpy(reply_buffer, "FATAL: storage is not initialized");
-            exit(EXIT_FAILURE); // TERRIBLE WAY OF EXITING
-        }
-        case STORAGE_OK: {
-            LOG_INFO(CLIENT "file [%s] successfully written\n", client_id, pathname);
-            strcpy(reply_buffer, "Write file was successfull");
-            break;
-        }
-    }
-    storage->is_free = 1;
-    pthread_cond_signal(&(storage->storage_available));
-    UNLOCK_RETURN(&(storage->storage_lock), -1);
-    return result;
-}
+#include "server/include/request_handlers.h"
 
 
 void*
@@ -100,7 +17,7 @@ worker_thread(void* args)
     // int worker_id = ((worker_arg_t*)args)->worker_id;
     int pipe_fd = ((worker_arg_t*)args)->pipe_fd;
     int exit = ((worker_arg_t*)args)->exit;
-    lqueue_t *requests = ((worker_arg_t*)args)->requests;
+    llist_t *requests = ((worker_arg_t*)args)->requests;
 
     free(args);
 
@@ -115,7 +32,11 @@ worker_thread(void* args)
         }
 
         // CRITICAL SECTION
-        dequeue(requests->queue, &client_fd);
+        // LOG_INFO("Worker dequeueing\n");
+        void* tmp;
+        list_remove_head(requests->queue, &tmp);
+        client_fd = (int)tmp;
+        // LOG_INFO("Worker dequeued %d\n", client_fd);
         requests->queue_size--;
         UNLOCK_RETURN(&(requests->lock), NULL);
         // CRITICAL SECTION
@@ -136,43 +57,85 @@ worker_thread(void* args)
         size = message->header.msg_size;
         strcpy(filename, message->header.filename);
 
-        char *reply_buffer = calloc(MAX_BUFFER, 1);
+        void *reply_buffer = malloc(MAX_BUFFER);
+        size_t buf_size = MAX_BUFFER;
+
         int result;
         switch (code) {
 
             case REQ_OPEN: {
-                result = open_file_handler(storage, message->header.filename, 
-                                            O_CREATE, client_fd - 5, reply_buffer);
+                result = open_file_handler(client_fd, storage, message->header.filename, 
+                                            *(int*)message->body, reply_buffer, &buf_size);
                 break;
             }
+
             case REQ_WRITE: {
-                result = write_file_handler(storage, message->header.filename, 
-                                            size, message->body, client_fd - 5, reply_buffer);
+                result = write_file_handler(client_fd, storage, message->header.filename, 
+                                            size, message->body, reply_buffer, &buf_size);
                 break;
+            }
+
+            case REQ_READ: {
+                result = read_file_handler(client_fd, storage, message->header.filename,
+                                            reply_buffer, &buf_size);
+                break;
+            }
+
+            case REQ_READ_N: {
+                list_t *files_list;
+                int N = *(int*)message->body;
+
+                if (N == 0 || N > storage->curr_no_files) N = storage->curr_no_files;
+                files_list = read_n_file_handler(storage, N, reply_buffer, &buf_size);
+                if (files_list != NULL) {
+                    char *to_send = malloc(N * MAX_PATH);
+                    while (!list_is_empty(files_list)) {
+                        char *tmp = malloc(MAX_PATH);
+                        list_remove_head(files_list, (void**)tmp);
+                        strcat(to_send, tmp);
+                        strcat(to_send, ":");
+                        free(tmp);
+                    }
+                    
+                    result = 0;
+                    buf_size = strlen(to_send) + 1;
+                    memcpy(reply_buffer, to_send, buf_size);
+                    list_destroy(files_list);
+                    free(to_send);
+                    break;
+                } else {
+                    result = -1;
+                    buf_size = strlen("ERROR") + 1;
+                    memcpy(reply_buffer, "ERROR", buf_size);
+                    break;
+                }
             }
             default: {
-                    strcpy(reply_buffer, "SUCCESS");
-                    message = set_message(RES_SUCCESS, filename, strlen(reply_buffer) + 1, reply_buffer);
+                    result = 0;
+                    buf_size = strlen("SUCCESS") + 1;
+                    memcpy(reply_buffer, "SUCCESS", buf_size);
                     break;
             }
         }
 
         int res_code = ((result == 0) ? RES_SUCCESS : RES_ERROR);
-        message = set_message(res_code, filename, strlen(reply_buffer) + 1, reply_buffer);
+        message = set_message(res_code, filename, buf_size, reply_buffer);
 
         if (send_message(client_fd, message) != 0) {
            LOG_ERROR("send_message(): %s\n", strerror(errno));
            return NULL;
         }
 
-        LOG_INFO(CLIENT "%s on [%s] done\n", client_fd - 5, msg_code_to_str(code), filename);
+        // LOG_INFO(CLIENT "%s on [%s] done\n", client_fd - 5, msg_code_to_str(code), filename);
 
         switch (code) {
             case REQ_END: {
                 int end = -1;
                 write(pipe_fd, &end, sizeof(int));
                 LOG_INFO(CLIENT "has ended the connection\n",
-                            client_fd - 5)
+                            client_fd);
+
+                // close(client_fd);
                 break;
             }
             default: {
