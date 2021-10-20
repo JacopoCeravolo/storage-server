@@ -36,7 +36,8 @@ MAKEFLAGS += --no-print-directory
 export MAKEFLAGS
 
 # Compiler flags
-CFLAGS		+= -Wall -std=c99 -D_POSIX_C_SOURCE 
+CFLAGS		+= -Wall -std=c99 -D_POSIX_C_SOURCE=200112L
+
 export CFLAGS
 
 INCLUDES	= -I$(ORIGIN)

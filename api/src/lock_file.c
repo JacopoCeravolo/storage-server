@@ -3,47 +3,33 @@
 int 
 lockFile(const char* pathname)
 {
-    if (pathname == NULL) {
-        errno = EINVAL;
-        return -1;
-    }
+  if (pathname == NULL) {
+    errno = EINVAL;
+    return -1;
+  }
+  if (DEBUG)
+    LOG_DEBUG("requesting lock of file [%s]\n", pathname);
 
-    /* Requesting lock of file */
-    if (DEBUG) LOG_DEBUG("requesting lock of file [%s]\n", pathname);
-    message_t *message;
+  int result;
+  message_t *message;
 
-    message = set_message(REQ_LOCK, pathname, strlen(pathname) + 1, (char*)pathname);
+  result = send_message(socket_fd, REQ_LOCK, pathname, 0, NULL);
+  if (result != 0) return -1;
 
-    printf(BOLD "\nREQUEST\n" RESET
-            BOLD "Code: " RESET "%s\n"
-            BOLD "File: " RESET "%s\n"
-            BOLD "BODY\n" RESET "%s\n", 
-            msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
+  if (DEBUG)
+    LOG_DEBUG("awaiting server response\n");
 
-    if (send_message(socket_fd, message) != 0) {
-      LOG_ERROR("send_message(): %s\n", strerror(errno));
-      return -1;
-    }
+  message = recv_message(socket_fd);
+  if (message == NULL) return -1;
 
-    /* Read server response */
-    if (DEBUG) LOG_DEBUG("awaiting server response\n");
-    
-    if ((message = recv_message(socket_fd)) == NULL) {
-      LOG_ERROR("recv_message(): %s\n", strerror(errno));
-      return -1;
-    }
-    
-    printf(BOLD "\nRESPONSE\n" RESET
-            BOLD "Code: " RESET "%s\n"
-            BOLD "File: " RESET "%s\n"
-            BOLD "BODY\n" RESET "%s\n", 
-            msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
+  if (DEBUG)
+    print_message(message);
 
-    int result = (message->header.code == RES_SUCCESS) ? 0 : -1;
+  switch (message->code) {
+    default: result = 0;
+    // TODO: controllo risultato
+  }
 
-    free(message->body);
-    free(message);
-    return result;
+  free_message(message);
+  return result;
 }

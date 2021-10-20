@@ -23,7 +23,7 @@ open_file_handler1(int client_id, storage_t *storage, message_t *message, void**
 
     int result;
     errno = 0;
-    result = storage_open_file(client_id, storage, message->header.filename, *(int*)message->body);
+    result = storage_open_file(client_id, storage, message->filename, *(int*)message->body);
 
     switch (result) {
         case 0: {
@@ -89,13 +89,14 @@ worker_thread(void* args)
             return NULL;
             // if (errno != EPIPE) return (void*)-1;
         }
+        print_message(message);
     
         int         code;
         char        filename[MAX_PATH];
         size_t      size;
-        code = message->header.code;
-        size = message->header.msg_size;
-        strcpy(filename, message->header.filename);
+        code = message->code;
+        size = message->size;
+        strcpy(filename, message->filename);
 
         void *reply_buffer = NULL;
         size_t buf_size = 0;
@@ -103,16 +104,16 @@ worker_thread(void* args)
         int result;
         switch (code) {
 
-            case REQ_OPEN: {
+            /* case REQ_OPEN: {
                 result = open_file_handler1(client_fd, storage, message, &reply_buffer, &buf_size);
                 break;
             }
 
-            /* case REQ_WRITE: {
+            case REQ_WRITE: {
                 result = write_file_handler(client_fd, storage, message->header.filename, 
                                             size, message->body, reply_buffer, &buf_size);
                 break;
-            } */
+            }
 
             case REQ_READ: {
                 result = read_file_handler(client_fd, storage, message->header.filename,
@@ -149,6 +150,7 @@ worker_thread(void* args)
                     break;
                 }
             }
+             */
             default: {
                     reply_buffer = malloc(MSG_SUCCESS_LEN);
                     buf_size = MSG_SUCCESS_LEN;
@@ -161,12 +163,14 @@ worker_thread(void* args)
         }
 
         int res_code = ((result == 0) ? RES_SUCCESS : RES_ERROR);
-        message = set_message(res_code, filename, buf_size, reply_buffer);
-
-        if (send_message(client_fd, message) != 0) {
-           LOG_ERROR("send_message(): %s\n", strerror(errno));
-           return NULL;
+        result = send_message(client_fd, res_code, filename, buf_size, reply_buffer);
+        if (result != 0) {
+            LOG_ERROR("send message(): %s\n", strerror(errno));
+            return NULL;
         }
+
+        free(reply_buffer);
+        free_message(message);
 
         // LOG_INFO(CLIENT "%s on [%s] done\n", client_fd - 5, msg_code_to_str(code), filename);
 
@@ -185,9 +189,7 @@ worker_thread(void* args)
                 break;
             }
         }
-        free(message->body);
-        free(message);
-        free(reply_buffer);
+        
     }
     return NULL;
 }

@@ -1,55 +1,54 @@
 #include "api/include/filestorage_api.h"
 
-int 
-readFile(const char* pathname, void** buf, size_t* size)
+int readFile(const char *pathname, void **buf, size_t *size)
 {
-  /* OPENS THE FILE */
+  // int result, flags = 0;
 
-  int flags = 0;
-  SET_FLAG(flags, O_READ);
+  /* SET_FLAG(flags, O_READ);
   if (openFile(pathname, flags) == -1) {
     LOG_ERROR("could not open file\n");
     return -1;
+  } */
+  if (pathname == NULL) {
+    errno = EINVAL;
+    return -1;
   }
-    /* Requesting read of file */
-    if (DEBUG) LOG_DEBUG("requesting read of file [%s]\n", pathname);
-    message_t *message;
 
-    message = set_message(REQ_READ, pathname, strlen(pathname) + 1, (void*)pathname);
+  if (DEBUG)
+    LOG_DEBUG("requesting read of file [%s]\n", pathname);
 
-    printf(BOLD "\nREQUEST\n" RESET
-            BOLD "Code: " RESET "%s\n"
-            BOLD "File: " RESET "%s\n"
-            BOLD "BODY\n" RESET "%s\n", 
-            msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
+  int result;
+  message_t *message;
 
-    if (send_message(socket_fd, message) != 0) {
-      LOG_ERROR("send_message(): %s\n", strerror(errno));
-      return -1;
+  result = send_message(socket_fd, REQ_READ, pathname, 0, NULL);
+  if (result != 0) return -1;
+
+  if (DEBUG)
+    LOG_DEBUG("awaiting server response\n");
+
+  message = recv_message(socket_fd);
+  if (message == NULL) return -1;
+
+  if (DEBUG)
+    print_message(message);
+
+  switch (message->code) {
+    case RES_SUCCESS: {
+      void* tmp_buf = malloc(message->size);
+      memcpy(tmp_buf, message->body, message->size);
+      *size = message->size;
+      *buf = tmp_buf;
+      result = 0; 
+      break;
     }
-    /* Read server response */
-    if (DEBUG) LOG_DEBUG("awaiting server response\n");
-
-    if ((message = recv_message(socket_fd)) == NULL) {
-      LOG_ERROR("recv_message(): %s\n", strerror(errno));
-      return -1;
+    default: {
+      memset(error_buffer, 0, 1024);
+      memcpy(error_buffer, message->body, message->size);
+      result = -1;
+      break;
     }
+  }
 
-    printf(BOLD "\nRESPONSE\n" RESET
-            BOLD "Code: " RESET "%s\n"
-            BOLD "File: " RESET "%s\n"
-            BOLD "BODY\n" RESET "%s\n", 
-            msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
-
-    // TODO check response, if success copy in buffer
-    *size = message->header.msg_size;
-    buf = &message->body;
-
-    int result = (message->header.code == RES_SUCCESS) ? 0 : -1;
-
-    free(message->body);
-    free(message);
-    return result;
+  free_message(message);
+  return result;
 }

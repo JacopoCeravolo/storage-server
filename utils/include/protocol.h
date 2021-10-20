@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include "utils/include/utilities.h"
 
+#define HANDSHAKE_REQUEST   "REQUESTING CONNECTION"
+#define CLOSING_REQUEST     "CLOSING CONNECTION"
+
 typedef enum {
     
     /* SERVER --> CLIENT */
@@ -38,30 +41,26 @@ typedef enum {
 
 } msg_code;
 
-typedef struct _header_t {
+typedef struct _message_t {
     msg_code    code;
     char        filename[MAX_PATH];
-    size_t      msg_size;
-} header_t;
-
-typedef struct _message_t {
-    header_t    header;
+    size_t      size;
     void*       body;
 } message_t;
 
-void
-set_header(header_t *header, msg_code code, const char *filename, size_t msg_sz);
-
-message_t*
-set_message(msg_code code, const char *filename, size_t size, void* body);
-
 int
-send_message(int conn_fd, message_t *msg);
+send_message(int conn_fd, msg_code code, const char *filename, size_t size, void* body);
 
 message_t*
 recv_message(int conn_fd);
 
+void
+free_message(message_t *message);
+
 const char*
 msg_code_to_str(msg_code code);
+
+void
+print_message(message_t *message);
 
 #endif

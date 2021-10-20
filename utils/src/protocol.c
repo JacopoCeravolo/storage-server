@@ -7,85 +7,84 @@
 
 #include "protocol.h"
 
-void
-set_header(header_t *header, msg_code code, const char *filename, size_t msg_sz)
-{
-    header->code = code;
-    memset(header->filename, 0, MAX_PATH);
-    strncpy(header->filename, filename, MAX_PATH);
-    header->msg_size = msg_sz;
-}
-
-message_t*
-set_message(msg_code code, const char *filename, size_t size, void* body)
-{
-    message_t *msg = malloc(sizeof(message_t));
-    msg->header.code = code;
-    memset(msg->header.filename, '0', MAX_PATH);
-    strcpy(msg->header.filename, filename);
-    msg->header.msg_size = size;
-
-    msg->body = malloc(msg->header.msg_size);
-    memcpy(msg->body, body, msg->header.msg_size);
-    return msg;
-}
-
-
 int
-send_message(int conn_fd, message_t *msg)
+send_message(int conn_fd, msg_code code, const char *filename, size_t size, void* body)
 {
-    /* Writes header */
+    int res;
+    SYSCALL_RETURN(res, write(conn_fd, (void*)&code, sizeof(msg_code)), 
+                "write()", res);
+    //fprintf(stderr, "sent code\n");
+    SYSCALL_RETURN(res, write(conn_fd, (void*)filename, sizeof(char) * MAX_PATH), 
+                "write()", res);
+    //fprintf(stderr, "sent name\n");
+    SYSCALL_RETURN(res, write(conn_fd, (void*)&size, sizeof(size_t)), 
+                "write()", res);
+    //fprintf(stderr, "sent size\n");
+    if (size != 0) {
+        SYSCALL_RETURN(res, write(conn_fd, body, size), 
+                "write()", res);
+        //fprintf(stderr, "sent body\n");
+    }
 
-    if (write(conn_fd, &msg->header.code, sizeof(msg_code)) != sizeof(msg_code)) {
-        return -1;
-    }
-    if (write(conn_fd, msg->header.filename, MAX_PATH) != MAX_PATH) {
-        return -1;
-    }
-    if (write(conn_fd, &msg->header.msg_size, sizeof(size_t)) != sizeof(size_t)) {
-        return -1;
-    }
-
-    /* Writes message body */
-
-    // Change to while loop to check number of bytes 
-    if (write(conn_fd, msg->body, msg->header.msg_size) != msg->header.msg_size) {
-        return -1;
-    }
-    // printf("writing %s\n", msg->body);
     return 0;
+    
 }
 
 message_t*
 recv_message(int conn_fd)
 {
-    message_t *msg = malloc(sizeof(message_t));
+    message_t *message;
+
+    message = malloc(sizeof(message_t));
+    if (message == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    // Set message to safe values
+    message->code = RES_UNKNOWN;
+    memset(message->filename, '\0', MAX_PATH);
+    message->size = 0;
+    message->body = NULL;
+
+    // Receives header
     int res;
+    SYSCALL_GOTO(res, read(conn_fd, (void*)&message->code, sizeof(msg_code)),
+                "read()", recv_message_exit);
+    //fprintf(stderr, "got code\n");            
+    SYSCALL_GOTO(res, read(conn_fd, (void*)message->filename, sizeof(char) * MAX_PATH),
+                "read()", recv_message_exit);
+    //fprintf(stderr, "got name\n");
+    SYSCALL_GOTO(res, read(conn_fd, (void*)&message->size, sizeof(size_t)),
+                "read()", recv_message_exit);
+    //fprintf(stderr, "got size\n");
 
-    if ((res = read(conn_fd, &msg->header.code, sizeof(msg_code))) != sizeof(msg_code)) {
-        if (res == -1) {
-            return NULL;
+    // Allocates memory for message body if necessary
+    if (message->size != 0) {
+        message->body = malloc(message->size);
+        if (message->body == NULL) {
+            errno = ENOMEM;
+            goto recv_message_exit;
         }
-    }
-    if ((res = read(conn_fd, msg->header.filename, MAX_PATH)) != MAX_PATH) {
-        if (res == -1) {
-            return NULL;
-        }
-    }
-    if ((res = read(conn_fd, &msg->header.msg_size, sizeof(size_t))) != sizeof(size_t)) {
-        if (res == -1) {
-            return NULL;
-        }
+        SYSCALL_GOTO(res, read(conn_fd, message->body, message->size),
+                "read()", recv_message_exit);
+        //fprintf(stderr, "got body\n");
     }
 
-    msg->body = malloc(msg->header.msg_size);
-    if ((res = read(conn_fd, msg->body, msg->header.msg_size)) != msg->header.msg_size) {
-        if (res == -1) {
-            return NULL;
-        }
-    }
-    
-    return msg;
+    return message;
+
+recv_message_exit:
+    if (message->body) free(message->body);
+    if (message) free(message);
+    return NULL;
+}
+
+
+void
+free_message(message_t *message)
+{
+    if (message->body) free(message->body);
+    if (message) free(message);
 }
 
 const char*
@@ -111,4 +110,23 @@ msg_code_to_str(msg_code code)
         case REQ_END:       return "CLOSE CONNECTION";
         default:            return "MSG_CODE";
     }
+}
+
+void
+print_message(message_t *message)
+{
+    printf("\n*************************\n");
+    printf("* Message\n");
+    printf("* Code: %s\n", msg_code_to_str(message->code));
+    printf("* File: %s\n", message->filename);
+    printf("* Size: %lu\n", message->size);
+    /* if (message->body != NULL) {
+        printf("* Body: ");
+        if ((message->code == REQ_OPEN) || (message->code == REQ_READ_N)) {
+            printf("%s\n", (char*)message->body);
+        } else {
+            printf("%d\n", *(int*)message->body);
+        }
+    } */
+    printf("*************************\n");
 }

@@ -92,4 +92,4 @@ clean:
 	$(RM) $(OBJ) $(DEP) 
 
 cleanall:
-	$(RM) $(OBJ) $(DEP) $(QUEUE) $(PROTOCOL) $(LIST)
+	$(RM) $(OBJ) $(DEP) $(QUEUE) $(PROTOCOL) $(LIST) $(HASHTABLE)

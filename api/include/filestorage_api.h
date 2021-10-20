@@ -17,10 +17,9 @@
 #include "utils/include/logger.h"
 #include "utils/include/protocol.h"
 
-#define HANDSHAKE_MSG   "REQUESTING CONNECTION"
-#define CLOSING_MSG     "CLOSING CONNECTION"
 
 long socket_fd; 
+// static char socket_name[MAX_PATH];
 char error_buffer[1024];
 
 

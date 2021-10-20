@@ -7,6 +7,8 @@
 #include <pthread.h>
 #include <stdbool.h>
 
+#include "logger.h"
+
 #ifndef DEFAULT_SOCKET_PATH
 #define DEFAULT_SOCKET_PATH     "/tmp/filestorage.sk"
 #endif

@@ -1,38 +1,40 @@
 #include "api/include/filestorage_api.h"
 
-int
-openFile(const char* pathname, int flags)
+int openFile(const char *pathname, int flags)
 {
-   
-    if (pathname == NULL || flags < 0) {
-      errno = EINVAL;
-      return -1;
-    }
+  if (pathname == NULL || flags < 0) {
+    errno = EINVAL;
+    return -1;
+  }
 
-    message_t *request;
-    request = set_message(REQ_OPEN, pathname, sizeof(int), &flags);
+  if (DEBUG)
+    LOG_DEBUG("attempting to open file [%s]\n", pathname);
 
-    errno = 0;
-    if (send_message(socket_fd, request) != 0) {
-      return -1;
-    }
+  int result;
+  message_t *message;
+  
+  result = send_message(socket_fd, REQ_OPEN, pathname, sizeof(int), &flags);
+  if (result != 0) return -1;
 
-    // LOG_INFO("open_file(): awaiting server response\n");
+  if (DEBUG)
+    LOG_DEBUG("awaiting server response\n");
 
-    errno = 0;
-    if ((request = recv_message(socket_fd)) == NULL) {
-      return -1;
-    }
+  message = recv_message(socket_fd);
+  if (message == NULL) return -1;
 
-    int result = (request->header.code == RES_SUCCESS) ? 0 : -1;
+  if (DEBUG)
+    print_message(message);
 
-    if (result != 0) {
+  switch (message->code) {
+    case RES_SUCCESS: result = 0; break;
+    default: {
+      result = -1;
       memset(error_buffer, 0, 1024);
-      memcpy(error_buffer, request->body, request->header.msg_size);
+      memcpy(error_buffer, message->body, message->size);
+      break;
     }
-    
-    free(request->body);
-    free(request);
-    
-    return result;
+  }
+
+  free_message(message);
+  return result;
 }
