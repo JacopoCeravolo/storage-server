@@ -21,6 +21,7 @@
 #define CLOSING_MSG     "CLOSING CONNECTION"
 
 long socket_fd; 
+char error_buffer[1024];
 
 
 /**

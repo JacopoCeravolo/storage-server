@@ -43,13 +43,15 @@ list_create(bool (*cmp)(void*, void*), void (*free_fun)(void*), void (*print)(vo
 int
 list_destroy(list_t *list)
 {
-    node_t *tmp;
-    while (list->head != NULL) {
-        tmp = list->head;
-        list->head = list->head->next;
-        list->free_fun(tmp->data);
-        free(tmp);
-    }
+    //if (list->length > 0) {
+        node_t *tmp;
+        while (list->head != NULL) {
+            tmp = list->head;
+            list->head = list->head->next;
+            list->free_fun(tmp->data);
+            free(tmp);
+        }
+    //}
     free(list);
     return 0;
 }

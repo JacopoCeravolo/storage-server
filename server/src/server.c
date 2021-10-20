@@ -37,6 +37,10 @@ void int_handler(int dummy) {
    FILE *logfile;
    /* Open logfile */
    logfile = fopen("logs/server-log.txt", "w+");
+   if (logfile == NULL) {
+      perror("fopen() failed: ");
+      exit(-1);
+   }
    printf("\nHandling SIGNIT exit\n");
    if (storage_dump(storage, logfile) != 0) {
       LOG_ERROR("could not write to logfile\n");

@@ -178,7 +178,7 @@ execute_request(option_t *opt)
                 list_remove_head(opt->files_list, &tmp);
                 char *pathname = (char*)tmp;
                 if (writeFile(pathname, abs_dirname) != 0) {
-                    LOG_ERROR("could not write file [%s] to server. ERROR: %s\n", pathname, strerror(errno));
+                    LOG_ERROR("could not write file [%s] to server. ERROR: %s\n", pathname, error_buffer);
                     break;
                 } else {
                     LOG_INFO("successfully written file [%s] to server.\n", pathname);

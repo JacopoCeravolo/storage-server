@@ -18,6 +18,7 @@ endif
 QUEUE 		= $(UTIL_LIBS)/libqueue.so
 LIST		= $(UTIL_LIBS)/liblist.so
 PROTOCOL 	= $(UTIL_LIBS)/libprotocol.so
+HASHTABLE 	= $(UTIL_LIBS)/libhashtable.so
 
 # Flags
 ifndef INCLUDES
@@ -59,6 +60,7 @@ all:
 	@make queue
 	@make protocol
 	@make list
+	@make hashtable
 
 queue: 
 	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/queue.o $(SRCDIR)/queue.c
@@ -74,6 +76,11 @@ protocol:
 	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/protocol.o $(SRCDIR)/protocol.c
 	$(RM) $(PROTOCOL)
 	$(CC) -shared -o $(PROTOCOL) $(OBJDIR)/protocol.o
+
+hashtable: 
+	$(CC) $(CFLAGS) $(INCLUDES) -c -MMD -MP -fPIC -o $(OBJDIR)/icl_hash.o $(SRCDIR)/icl_hash.c
+	$(RM) $(HASHTABLE)
+	$(CC) -shared -o $(HASHTABLE) $(OBJDIR)/icl_hash.o
 
 
 test_protocol: $(PROTOCOL)

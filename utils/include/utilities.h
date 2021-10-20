@@ -40,6 +40,27 @@
 #define WORKER      BOLD "[WORKER %d] " RESET
 #define CLIENT      BOLD "(client %d) " RESET
 
+
+// Run a syscall, store the result and die on fail
+#define SYSCALL_DIE(result, call, msg) \
+        if((result = call) == -1) { \
+            int e = errno; char err_buf[1024]; strerror_r(e, &err_buf[0], 1024); \
+            LOG_FATAL("%s: %s\n", msg, err_buf); exit(e); }
+
+// Run a syscall, store the result and returns ret on fail
+#define SYSCALL_RETURN(result, call, msg, ret) \
+        if ((result = call) == -1) { \
+            int e = errno; char err_buf[1024]; strerror_r(e, &err_buf[0], 1024); \
+            LOG_FATAL("%s: %s\n", msg, err_buf); return ret; }
+
+
+// Run a syscall, store the result and goto label on fail
+#define SYSCALL_GOTO(result, call, msg, lab) \
+        if((result = call) == -1) { \
+            int e = errno; char err_buf[1024]; strerror_r(e, &err_buf[0], 1024); \
+            LOG_FATAL("%s: %s\n", msg, err_buf); goto lab; }
+
+
 #define LOCK(l)      if (pthread_mutex_lock(l)!=0)        { \
     fprintf(stderr, "ERRORE FATALE lock\n");		    \
     pthread_exit((void*)EXIT_FAILURE);			    \

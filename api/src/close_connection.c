@@ -1,7 +1,7 @@
 #include "api/include/filestorage_api.h"
 
 int 
-closeConnection(const char* sockname)
+closeConnection(const char* sockname) 
 {
     if (DEBUG) LOG_DEBUG("closing the connection on socket [%s]\n", sockname);
     message_t *message;
@@ -10,12 +10,7 @@ closeConnection(const char* sockname)
 
     message = set_message(REQ_END, sockname, strlen(buffer) + 1, buffer);
    
-   printf(BOLD "\nREQUEST\n" RESET
-            BOLD "Code: " RESET "%s\n"
-            BOLD "File: " RESET "%s\n"
-            BOLD "BODY\n" RESET "%s\n", 
-            msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
+   
    
     if (send_message(socket_fd, message) != 0) {
         // LOG_ERROR("send_message(): %s\n", strerror(errno));
@@ -29,12 +24,12 @@ closeConnection(const char* sockname)
       return -1;
     }
 
-    printf(BOLD "\nRESPONSE\n" RESET
+    /* printf(BOLD "\nRESPONSE\n" RESET
             BOLD "Code: " RESET "%s\n"
             BOLD "File: " RESET "%s\n"
             BOLD "BODY\n" RESET "%s\n", 
             msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
+            message->header.filename, (char*)message->body); */
     
     free(buffer);
     free(message->body);

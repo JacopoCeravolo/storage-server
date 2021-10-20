@@ -6,6 +6,7 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
    /* Initialize sockaddr_un and tries to connect */
 
    if (DEBUG) LOG_DEBUG("attempting to open a connection on socket [%s]\n", sockname);
+
    int res;
    struct sockaddr_un serveraddr;
    socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -27,13 +28,6 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
    strcpy(buffer, HANDSHAKE_MSG);
 
    handshake = set_message(REQ_WELCOME, sockname, strlen(buffer) + 1, (void*)buffer);
-
-   printf(BOLD "\nREQUEST\n" RESET
-            BOLD "Code: " RESET "%s\n"
-            BOLD "File: " RESET "%s\n"
-            BOLD "BODY\n" RESET "%s\n", 
-            msg_code_to_str(handshake->header.code), 
-            handshake->header.filename, (char*)handshake->body);
    
    if (DEBUG) LOG_DEBUG("sending handshake message\n");
    if (send_message(socket_fd, handshake) != 0) {
@@ -49,12 +43,12 @@ openConnection(const char* sockname, int msec, const struct timespec abstime)
       return -1;
    }
 
-   printf(BOLD "\nRESPONSE\n" RESET
+   /* printf(BOLD "\nRESPONSE\n" RESET
             BOLD "Code: " RESET "%s\n"
             BOLD "File: " RESET "%s\n"
             BOLD "BODY\n" RESET "%s\n", 
             msg_code_to_str(handshake->header.code), 
-            handshake->header.filename, (char*)handshake->body);
+            handshake->header.filename, (char*)handshake->body); */
     
    /* Cleanup */
    int result = (handshake->header.code == RES_SUCCESS) ? 0 : -1;

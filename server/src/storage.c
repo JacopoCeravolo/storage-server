@@ -70,14 +70,10 @@ storage_open_file(int client_id, storage_t *storage, char *pathname, int flags)
 {
     /* Checks parameters */
 
-    if (storage == NULL) {
+    if (storage == NULL || client_id < 0 
+        || pathname == NULL || flags < 0) {
         errno = EINVAL;
-        return E_NOINITIALIZE;
-    }
-
-    if (client_id < 0 || pathname == NULL || flags < 0) {
-        errno = EINVAL;
-        return E_INVALID_PARAM;
+        return -1;
     }
 
     file_t *file = calloc(1, sizeof(file_t));
@@ -90,7 +86,7 @@ storage_open_file(int client_id, storage_t *storage, char *pathname, int flags)
 
     if (CHK_FLAG(flags, O_CREATE)) {
 
-        fprintf(stderr, "Flag is create\n");
+        // fprintf(stderr, "Flag is create\n");
         /* Set file metadata */
 
         strcpy(file->path, pathname);
@@ -106,7 +102,7 @@ storage_open_file(int client_id, storage_t *storage, char *pathname, int flags)
         if (icl_hash_insert(storage->files, pathname, file) == NULL) {
             free(file);
             errno = EEXIST;
-            return E_EXIST_ALREADY;
+            return -1;
         }
 
         //free(file_entry);
@@ -117,16 +113,17 @@ storage_open_file(int client_id, storage_t *storage, char *pathname, int flags)
     if (CHK_FLAG(flags, O_READ)) {
 
         /* Check whether file exists */
-        fprintf(stderr, "Flag is read\n");
+        // fprintf(stderr, "Flag is read\n");
 
         file = (file_t*)icl_hash_find(storage->files, pathname);
         if (file == NULL) {
             errno = ENOENT;
-            return E_NOEXIST;
+            return -1;
         }
 
         if (file->locked != client_id) {
-            return E_NOPERMISSION;
+            errno = EPERM;
+            return -1;
         }
 
         if (!is_owner(client_id, file->owners)) {
@@ -136,21 +133,22 @@ storage_open_file(int client_id, storage_t *storage, char *pathname, int flags)
 
     if (CHK_FLAG(flags, O_LOCK)) {
 
-        fprintf(stderr, "Flag is lock\n");
+        //fprintf(stderr, "Flag is lock\n");
         file = (file_t*)icl_hash_find(storage->files, pathname);
         if (file == NULL) {
             errno = ENOENT;
-            return E_NOEXIST;
+            return -1;
         }
 
         if (file->locked || !is_owner(client_id, file->owners)) {
-            return E_NOPERMISSION;
+            errno = EPERM;
+            return -1;
         }
 
         return storage_lock_file(client_id, storage, pathname);
     }
 
-    return STORAGE_OK;
+    return 0;
 }
 
 /**

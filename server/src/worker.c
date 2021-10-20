@@ -8,6 +8,46 @@
 #include "server/include/server_config.h"
 #include "server/include/request_handlers.h"
 
+#define MSG_SUCCESS     "Operation successfull"
+#define MSG_SUCCESS_LEN strlen(MSG_SUCCESS) + 1
+
+int
+open_file_handler1(int client_id, storage_t *storage, message_t *message, void** reply_buffer, size_t *buf_size)
+{
+    LOCK_RETURN(&(storage->storage_lock), -1);
+    
+    while (!(storage->is_free)) {
+        pthread_cond_wait(&(storage->storage_available), &(storage->storage_lock));
+    }
+    storage->is_free = 0;
+
+    int result;
+    errno = 0;
+    result = storage_open_file(client_id, storage, message->header.filename, *(int*)message->body);
+
+    switch (result) {
+        case 0: {
+            *reply_buffer = malloc(MSG_SUCCESS_LEN);
+            *buf_size = MSG_SUCCESS_LEN;
+            memcpy(*reply_buffer, MSG_SUCCESS, MSG_SUCCESS_LEN);
+            break;
+        }
+        case -1: {
+            char err_buf[1024];
+            strerror_r(errno, err_buf, 1024);
+            *buf_size = strlen(err_buf) + 1;
+            *reply_buffer = malloc(*buf_size);
+            memcpy(*reply_buffer, err_buf, *buf_size);
+            break;
+        }
+    }
+    storage->is_free = 1;
+    pthread_cond_signal(&(storage->storage_available));
+    UNLOCK_RETURN(&(storage->storage_lock), -1); 
+
+    // fprintf(stderr, "%d: message will be: %s\n",client_id, (char*)*reply_buffer);  
+    return result;
+}
 
 void*
 worker_thread(void* args)
@@ -57,23 +97,22 @@ worker_thread(void* args)
         size = message->header.msg_size;
         strcpy(filename, message->header.filename);
 
-        void *reply_buffer = malloc(MAX_BUFFER);
-        size_t buf_size = MAX_BUFFER;
+        void *reply_buffer = NULL;
+        size_t buf_size = 0;
 
         int result;
         switch (code) {
 
             case REQ_OPEN: {
-                result = open_file_handler(client_fd, storage, message->header.filename, 
-                                            *(int*)message->body, reply_buffer, &buf_size);
+                result = open_file_handler1(client_fd, storage, message, &reply_buffer, &buf_size);
                 break;
             }
 
-            case REQ_WRITE: {
+            /* case REQ_WRITE: {
                 result = write_file_handler(client_fd, storage, message->header.filename, 
                                             size, message->body, reply_buffer, &buf_size);
                 break;
-            }
+            } */
 
             case REQ_READ: {
                 result = read_file_handler(client_fd, storage, message->header.filename,
@@ -111,6 +150,9 @@ worker_thread(void* args)
                 }
             }
             default: {
+                    reply_buffer = malloc(MSG_SUCCESS_LEN);
+                    buf_size = MSG_SUCCESS_LEN;
+                    memcpy(reply_buffer, MSG_SUCCESS, MSG_SUCCESS_LEN);
                     result = 0;
                     buf_size = strlen("SUCCESS") + 1;
                     memcpy(reply_buffer, "SUCCESS", buf_size);

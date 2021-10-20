@@ -35,7 +35,7 @@ PROTOCOL	= $(UTIL_LIBS)/libprotocol.so
 LINK_PROTOCOL 	= -Wl,-rpath,$(UTIL_LIBS)
 LINK_PROTOCOL	+= -L $(UTIL_LIBS)
 LINK_PROTOCOL	+= -lprotocol
-LINK_PROTOCOL 	+= -llist
+LINK_PROTOCOL 	+= -llist -lhashtable
 
  
 LINK_ALL	= $(LINK_PROTOCOL) -lqueue -lpthread

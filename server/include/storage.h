@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-#include "server/include/icl_hash.h"
+#include "utils/include/icl_hash.h"
 #include "utils/include/list.h"
 #include "utils/include/utilities.h"
 

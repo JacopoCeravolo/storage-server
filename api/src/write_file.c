@@ -51,10 +51,12 @@ writeFile(const char* pathname, const char* dirname)
     SET_FLAG(flags, O_CREATE);
     SET_FLAG(flags, O_LOCK);
 
+    if (openFile(pathname, flags) == -1) {
+        return -1;
+    }
+    else {
 
-    if (openFile(pathname, flags) != -1) {
-
-        LOG_INFO("%d %d -----> %d\n", O_CREATE, O_LOCK, O_CREATE|O_LOCK);
+        // LOG_INFO("%d %d -----> %d\n", O_CREATE, O_LOCK, O_CREATE|O_LOCK);
         /* Writes file to server */
         if (DEBUG) LOG_DEBUG("writing file [%s] to server\n", pathname);
         
@@ -62,12 +64,12 @@ writeFile(const char* pathname, const char* dirname)
     
         message = set_message(REQ_WRITE, pathname, file_size, file_data);
     
-        printf(BOLD "\nREQUEST\n" RESET
+        /* printf(BOLD "\nREQUEST\n" RESET
             BOLD "Code: " RESET "%s\n"
             BOLD "File: " RESET "%s\n"
             BOLD "BODY\n" RESET "%s\n", 
             msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
+            message->header.filename, (char*)message->body); */
 
         if (send_message(socket_fd, message) != 0) {
           LOG_ERROR("send_message(): %s\n", strerror(errno));
@@ -82,12 +84,12 @@ writeFile(const char* pathname, const char* dirname)
           return -1;
         }
         
-        printf(BOLD "\nRESPONSE\n" RESET
+        /* printf(BOLD "\nRESPONSE\n" RESET
             BOLD "Code: " RESET "%s\n"
             BOLD "File: " RESET "%s\n"
             BOLD "BODY\n" RESET "%s\n", 
             msg_code_to_str(message->header.code), 
-            message->header.filename, (char*)message->body);
+            message->header.filename, (char*)message->body); */
 
     
         int result = (message->header.code == RES_SUCCESS) ? 0 : -1;
@@ -98,5 +100,5 @@ writeFile(const char* pathname, const char* dirname)
         return result;
     }
 
-    return -1;
+    //return -1;
 }
